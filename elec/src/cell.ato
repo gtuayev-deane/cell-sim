@@ -1,0 +1,179 @@
+# Generics
+from "generics/interfaces.ato" import Power, I2C
+from "generics/resistors.ato" import SeriesPowerResistors, Resistor
+
+# Components
+from "i2c-devices/iso1640.ato" import ISO1640BDR
+from "i2c-devices/mcp4725.ato" import MCP4725A0T
+from "i2c-devices/ads1115.ato" import ADS1115IDGSR
+from "regulators/digitalBuck.ato" import DigitalBuck
+from "regulators/digitalLDO.ato" import DigitalLDO
+from "regulators/b1205s.ato" import B1205S_2WR2
+from "current-sensor.ato" import CurrentSensor
+from "relay.ato" import Relay
+
+
+module Cell:
+    """
+    Power:
+    Isolated DCDC converter -> Buck regulator -> LDO -> filter -> Output switch -> current sensor -> Cell output
+
+    Control:
+    Digital isolator (i2c) ->
+        - ADC current sense
+        - ADC voltage sense (buck)
+        - ADC voltage sense (LDO)
+        - gpio output (switch)
+        - DAC (buck)
+        - DAC (LDO)
+
+    Parts list:
+        gpio expander: TCA6408ARGTR (0x20/0x21)
+        DAC: MCP4725A0T-E/CH
+        ADC: ADS1115IDGSR
+        Digital isolator: ISO1640BDR
+        Output relay: HFD4/5-SR
+        Buck regulator: TPS563201DDCR
+        LDO: TLV75901PDRVR
+        Addressable leds: SK6805
+    """
+    # External interfaces
+    power_in = new Power
+    power_out = new Power
+    power_5v = new Power # micro gnd referenced rail 
+    power_isolator = new Power # power for digital isolators
+    dmm_out = new Power
+    i2c = new I2C
+    cell_up = new CellJumper
+    cell_down = new CellJumper
+    signal dmm_relay_enable
+
+    #Output specs
+    power_out.voltage &= 0V to 5V
+    power_out.current -= 300mA
+
+    # Internal interfaces
+    _power_5v = new Power
+    _power_3v3 = new Power
+    _iso_i2c = new I2C
+
+    isolated_converter = new B1205S_2WR2
+    adc = new ADS1115IDGSR
+    buck = new DigitalBuck
+    ldo = new DigitalLDO
+    current_sense = new CurrentSensor
+    output_relay = new Relay
+    dmm_relay = new Relay
+    gpio = new TCA6408ARGTR
+    filter = new PiFilter
+    digital_isolator = new ISO1640BDR
+    voltage_led = new SK6805EC20
+    current_led = new SK6805EC20
+    load_switch = new LowSideSwitch
+    load_resistor = new Resistor
+
+    # addresses:
+    adc.address = "0x48"
+    buck.address = "0x61"
+    ldo.address = "0x60"
+    gpio.address = "0x20"
+    current_sense.address = "0x21"
+
+    # Power LEDs
+    power_5v ~ voltage_led.power
+    power_5v ~ current_led.power
+
+    # Connect LEDs
+    cell_down.led_data ~ current_led.din.io
+    current_led.dout.io ~ voltage_led.din.io
+    voltage_led.dout.io ~ cell_up.led_data
+
+    # Jumper connections
+    cell_up.cell ~ filter.power_out.vcc
+    cell_down.cell ~ filter.power_out.gnd
+
+    # Digital i2c isolator
+    i2c ~ digital_isolator.i2c_non_isolated
+    digital_isolator.i2c_isolated ~ _iso_i2c
+
+    # Connect I2C to devices
+    _iso_i2c ~ adc.i2c
+    _iso_i2c ~ buck.i2c
+    _iso_i2c ~ ldo.i2c
+    _iso_i2c ~ gpio.i2c
+
+    # Internal rails
+    internal_ldo = new LDK220M_R
+    _power_5v ~ internal_ldo.power_in
+    internal_ldo.power_out ~ _power_3v3
+
+    # Pi Filter
+    filter.C1.value = 10uF +/- 10%
+    filter.C1.package = "0805"
+    filter.L1 -> YNR4030_101M
+    filter.C2.value = 10uF +/- 10%
+    filter.C2.package = "0805"
+
+    # Current sense config
+    current_sense.current = 0.5A
+    current_sense.shunt.value = 100mohm +/- 10%
+
+    # Power devices
+    power_isolator ~ digital_isolator.power_non_isolated
+    _power_3v3 ~ adc.power
+    _power_3v3 ~ digital_isolator.power_isolated
+    _power_3v3 ~ buck.power_3v3
+    _power_3v3 ~ ldo.power_3v3
+    _power_3v3 ~ gpio.power
+    _power_3v3 ~ current_sense.power
+    _power_5v ~ output_relay.power_5v
+    power_5v ~ dmm_relay.power_5v # powered from Micro 5V rail
+
+    #TODO: do the math in ato
+    # Buck config: vout = 5v when vctrl = 0V, vout = 0V when vctrl = 3.3V
+    buck.power_out.voltage &= 0V to 5V
+    buck.feedback_div.r_top.value = 37kohm +/- 2%
+    buck.feedback_div.r_bottom.value = 10kohm +/- 2%
+    buck.ctrl_resistor.value = 24kohm +/- 2%
+
+    #TODO: do the math in ato
+    # LDO config: vout = 5v when vctrl = 0V, vout = 0V when vctrl = 3.3V
+    ldo.feedback_div.r_top.value = 60kohm +/- 2%
+    ldo.feedback_div.r_bottom.value = 10kohm +/- 2%
+    ldo.ctrl_resistor.value = 43kohm +/- 2%
+
+
+    # Connect Cell components
+    power_in ~ isolated_converter.power_in
+    isolated_converter.power_out ~ _power_5v
+    _power_5v ~ buck.power_in
+    buck.power_out ~ ldo.power_in
+    ldo.power_out ~ filter.power_in
+    filter.power_out ~ current_sense.power_in
+    current_sense.power_out ~ output_relay.power_in
+    output_relay.power_out ~ power_out
+
+    ldo.power_out ~ load_switch.power_in
+
+    # dmm relay
+    dmm_i_lim_resistors = new SeriesPowerResistors
+    current_sense.power_out ~ dmm_relay.power_in
+    dmm_relay.power_out ~ dmm_i_lim_resistors.power_in
+    dmm_i_lim_resistors.power_out ~ dmm_out
+    dmm_relay_enable ~ dmm_relay.input
+
+    # ADC connections
+    adc.AIN0 ~ buck.power_out.vcc
+    adc.AIN1 ~ ldo.power_out.vcc
+    adc.AIN2 ~ power_out.vcc
+    adc.AIN3 ~ current_sense.output
+
+    # GPIO expander
+    gpio.P2 ~ buck.enable
+    gpio.P3 ~ ldo.enable
+    gpio.P4 ~ load_switch.control
+
+# Custom interface for connecting the cells together
+interface CellJumper:
+    signal cell
+    signal led_data

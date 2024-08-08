@@ -1,0 +1,83 @@
+import Power from "generics/interfaces.ato"
+
+module BananaPower:
+    socket_red = new BananaSocketRed
+    socket_black = new BananaSocketBlack
+
+    power = new Power
+    power.vcc ~ socket_red.p1
+    power.gnd ~ socket_black.p1
+
+component BananaSocketBlack:
+    # component _24_period_243_period_2
+    footprint = "CONN-TH_24.243.2"
+    lcsc_id = "C7437322"
+    mpn = "C7437322"
+    # pins
+    signal p1 ~ pin 1
+    p1 ~ pin 2
+
+component BananaSocketRed:
+    # component _24_period_243_period_1
+    footprint = "AUDIO-TH_24.243.1"
+    lcsc_id = "C7437321"
+    mpn = "C7437321"
+    # pins
+    signal p1 ~ pin 1
+    p1 ~ pin 2
+
+component XT30_Male_Right_Angle:
+    """Male XT30 connector with right angle pins. This side would go on the device typically"""
+    signal gnd ~ pin 1
+    signal vin ~ pin 2
+    power = new Power
+    power.vcc ~ vin
+    power.gnd ~ gnd
+
+    power.current += 15A
+    power.voltage &= 0V to 500V
+
+    footprint = "CONN-TH_XT30PW-M"
+    lcsc_id = "C431092"
+    mpn = "C431092"
+    designator_prefix = "J"
+
+component XT30_Male_Vertical:
+    """Male XT30 connector with vertical pins. This side would go on the device typically"""
+    signal gnd ~ pin 1
+    signal vin ~ pin 2
+    power = new Power
+    power.vcc ~ vin
+    power.gnd ~ gnd
+
+    # component XT30U-M
+    footprint = "CONN-TH_XT30U-M"
+    lcsc_id = "C99101"
+    mpn = "C99101"
+    designator_prefix = "J"
+
+component XT30_Female_Right_Angle:
+    """Female XT30 connector with right angle pins. This side would go on the battery typically"""
+    signal gnd ~ pin 1
+    signal vin ~ pin 2
+    power = new Power
+    power.vcc ~ vin
+    power.gnd ~ gnd
+
+    # component XT30PW-F
+    footprint = "CONN-TH_XT30PW-F-1"
+    lcsc_id = "C2913282"
+    mpn = "C2913282"
+
+component XT30_Female_Vertical:
+    """Female XT30 connector with vertical pins. This side would go on the battery typically"""
+    signal gnd ~ pin 2
+    signal vin ~ pin 1
+    power = new Power
+    power.vcc ~ vin
+    power.gnd ~ gnd
+
+    # component XT30UPB-F
+    footprint = "CONN-TH_XT30UPB-F"
+    lcsc_id = "C108769"
+    mpn = "C108769"

@@ -1,2 +1,130 @@
 module CellSim:
-    signal gnd
+    power_in = new Power
+    power_batt = new Power
+    power_5v = new Power
+    power_3v3 = new Power
+    dmm_out = new Power
+
+    micro = new ESP32S3
+    usbc = new USBCConn
+
+    # Power input
+    input_filter = new PiFilter
+    power_connector = new XT30_Male_Right_Angle
+    current_sensor = new CurrentSensor
+    current_sensor.current = 10A
+    power_connector.power ~ input_filter.power_in
+    input_filter.power_out ~ current_sensor.power_in
+    current_sensor.power_out ~ power_in
+
+    # Configure current sensor
+    power_3v3 ~ current_sensor.power
+
+    # Input voltage sense
+    voltage_sense = new VDiv
+    power_in ~ voltage_sense.power
+    voltage_sense.v_out = 0V to 3V
+    voltage_sense.out ~ micro.io16
+
+    # DMM output
+    dmm_connector = new BananaPower
+    dmm_connector.power ~ dmm_out
+
+    # Micro connections
+    power_3v3 ~ micro.power
+    usbc.usb2 ~ micro.usb2
+
+    # LCD
+    lcd = new LCDConnector
+    power_3v3 ~ lcd.power
+    micro.i2c ~ lcd.i2c
+    lcd.address = "0x3C"
+
+    # I2C mux
+    mux = new TCA9548APWR
+    power_3v3 ~ mux.power
+    micro.i2c ~ mux.i2c
+    mux.address = "0x70"
+
+    i2c_pullup = new I2CPullup
+    power_3v3 ~ i2c_pullup.power
+    micro.i2c ~ i2c_pullup.i2c
+    i2c_pullup.r_scl.value = 2kohm +/- 20%
+    i2c_pullup.r_sda.value = 2kohm +/- 20%
+    i2c_pullup.r_scl.package = "0402"
+    i2c_pullup.r_sda.package = "0402"
+
+    # regulator to 5V
+    buck = new LV2842Kit
+    buck.v_in = 12V +/- 10%
+    buck.v_out = 5V +/- 5%
+    power_in ~ buck.power_in
+
+    # Diode or USB supply to 5V rail
+    diode_or = new PowerDiodeOr
+    usbc.power ~ diode_or.power_in1
+    buck.power_out ~ diode_or.power_in2
+    diode_or.power_out ~ power_5v
+
+    # regulator to 3.3V
+    ldo3v3 = new LDK220M_R
+    ldo3v3.v_in = buck.v_out
+    ldo3v3.v_out = 3.3V +/- 10%
+    power_5v ~ ldo3v3.power_in
+    ldo3v3.power_out ~ power_3v3
+
+    # LEDs
+    level_shifter = new LevelShifter
+    power_3v3 ~ level_shifter.power_lv
+    power_5v ~ level_shifter.power_hv
+    micro.io15 ~ level_shifter.lv_signal
+
+    # Connect cells in a stack
+    cell1 = new Cell
+    mux.i2c1 ~ cell1.i2c
+    power_in ~ cell1.power_in
+    power_5v ~ cell1.power_5v
+    power_3v3 ~ cell1.power_isolator
+    dmm_out ~ cell1.dmm_out
+    level_shifter.hv_signal ~ cell1.cell_down.led_data
+    power_in.gnd ~ cell1.cell_down.cell
+
+    cell2 = new Cell
+    mux.i2c2 ~ cell2.i2c
+    power_in ~ cell2.power_in
+    power_5v ~ cell2.power_5v
+    power_3v3 ~ cell2.power_isolator
+    dmm_out ~ cell2.dmm_out
+    cell1.cell_up ~ cell2.cell_down
+
+    cell3 = new Cell
+    mux.i2c3 ~ cell3.i2c
+    power_in ~ cell3.power_in
+    power_5v ~ cell3.power_5v
+    power_3v3 ~ cell3.power_isolator
+    dmm_out ~ cell3.dmm_out
+    cell2.cell_up ~ cell3.cell_down
+
+    # Connect power_batt across the stack
+    power_batt.vcc ~ cell3.power_out.vcc
+    power_batt.gnd ~ cell1.power_out.gnd
+
+    # Debugging
+    i2c_debug = new SaleaeHeader
+    micro.i2c ~ i2c_debug.i2c
+    power_5v.vcc ~ i2c_debug.ch2.io
+    power_3v3.vcc ~ i2c_debug.ch3.io
+    i2c_debug.gnd ~ power_in.gnd
+
+    cell3_debug_1 = new SaleaeHeader
+    cell3._iso_i2c ~ cell3_debug_1.i2c
+    cell3.buck.power_out.vcc ~ cell3_debug_1.ch2.io
+    cell3.ldo.power_out.vcc ~ cell3_debug_1.ch3.io
+    cell3_debug_1.gnd ~ cell3._power_5v.gnd
+
+    cell3_debug_2 = new SaleaeHeader
+    cell3.current_sense.output ~ cell3_debug_2.ch0.io
+    cell3.output_relay.input ~ cell3_debug_2.ch1.io
+    cell3.dmm_relay.input ~ cell3_debug_2.ch2.io
+    cell3._power_3v3.vcc ~ cell3_debug_2.ch3.io
+    cell3_debug_2.gnd ~ cell3._power_5v.gnd
