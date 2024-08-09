@@ -1,20 +1,21 @@
 # Generics
 from "generics/interfaces.ato" import Power, I2C
-from "generics/resistors.ato" import SeriesPowerResistors, Resistor
+from "generics/resistors.ato" import SeriesPowerResistors, Resistor, I2CPullup
 
 # Components
-from "i2c-devices/iso1640.ato" import ISO1640BDR
-from "i2c-devices/mcp4725.ato" import MCP4725A0T
-from "i2c-devices/ads1115.ato" import ADS1115IDGSR
-from "regulators/digitalBuck.ato" import DigitalBuck
-from "regulators/digitalLDO.ato" import DigitalLDO
-from "regulators/b1205s.ato" import B1205S_2WR2
-from "current-sensor.ato" import CurrentSensor
-from "relay.ato" import Relay
+from "components/iso1640.ato" import ISO1640BDR
+from "components/mcp4725.ato" import MCP4725A0T
+from "components/ads1115.ato" import ADS1115IDGSR
+from "components/digitalBuck.ato" import DigitalBuck
+from "components/digitalLDO.ato" import DigitalLDO
+from "components/b1205s.ato" import B1205S_2WR2
+from "components/current-sensor.ato" import CurrentSensor
+from "components/relay.ato" import Relay
 
 
 module Cell:
     """
+    Isolated stackable cell module with digital control and monitoring
     Power:
     Isolated DCDC converter -> Buck regulator -> LDO -> filter -> Output switch -> current sensor -> Cell output
 
@@ -71,6 +72,7 @@ module Cell:
     current_led = new SK6805EC20
     load_switch = new LowSideSwitch
     load_resistor = new Resistor
+    i2c_pullup = new I2CPullup
 
     # addresses:
     adc.address = "0x48"
@@ -78,6 +80,10 @@ module Cell:
     ldo.address = "0x60"
     gpio.address = "0x20"
     current_sense.address = "0x21"
+
+    # I2C pullup
+    _power_3v3 ~ i2c_pullup.power
+    _iso_i2c ~ i2c_pullup.i2c
 
     # Power LEDs
     power_5v ~ voltage_led.power

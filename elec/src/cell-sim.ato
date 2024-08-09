@@ -1,3 +1,27 @@
+from "generics/capacitors.ato" import Capacitor
+from "generics/resistors.ato" import Resistor, I2CPullup
+from "generics/inductors.ato" import Inductor
+from "generics/diodes.ato" import PowerDiodeOr
+from "generics/interfaces.ato" import Power, SPI, I2C, DiffPair
+from "generics/mosfets.ato" import NFET
+from "generics/leds.ato" import LEDIndicatorGreen
+from "generics/regulators.ato" import IsolatedRegulator, Regulator, LDO
+from "generics/vdivs.ato" import _VDiv, VDiv
+from "generics/inductors.ato" import Inductor
+from "generics/filters.ato" import PiFilter
+from "generics/vdivs.ato" import _VDiv
+
+from "components/esp32-s3/elec/src/esp32-s3.ato" import ESP32S3
+from "components/level-shifter/elec/src/level-shifter.ato" import LevelShifter
+from "components/sk6805-ec20/elec/src/sk6805-ec20.ato" import SK6805EC20
+from "components/ldk220m-r/elec/src/ldk220m-r.ato" import LDK220M_R
+from "components/lv2842xlvddcr/lv2842kit.ato" import LV2842Kit
+from "components/usb-connectors/usb-connectors.ato" import USBCConn
+from "components/tca9548apwr/elec/src/tca9548apwr.ato" import TCA9548APWR
+from "components/xt-connectors/xt-connectors.ato" import XT30_Male_Right_Angle
+from "components/saleae-header/saleae-header.ato" import SaleaeHeader
+
+
 module CellSim:
     power_in = new Power
     power_batt = new Power
@@ -115,16 +139,3 @@ module CellSim:
     power_5v.vcc ~ i2c_debug.ch2.io
     power_3v3.vcc ~ i2c_debug.ch3.io
     i2c_debug.gnd ~ power_in.gnd
-
-    cell3_debug_1 = new SaleaeHeader
-    cell3._iso_i2c ~ cell3_debug_1.i2c
-    cell3.buck.power_out.vcc ~ cell3_debug_1.ch2.io
-    cell3.ldo.power_out.vcc ~ cell3_debug_1.ch3.io
-    cell3_debug_1.gnd ~ cell3._power_5v.gnd
-
-    cell3_debug_2 = new SaleaeHeader
-    cell3.current_sense.output ~ cell3_debug_2.ch0.io
-    cell3.output_relay.input ~ cell3_debug_2.ch1.io
-    cell3.dmm_relay.input ~ cell3_debug_2.ch2.io
-    cell3._power_3v3.vcc ~ cell3_debug_2.ch3.io
-    cell3_debug_2.gnd ~ cell3._power_5v.gnd
