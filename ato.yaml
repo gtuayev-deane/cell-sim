@@ -2,8 +2,14 @@ ato-version: ^0.2.0
 builds:
   default:
     entry: elec/src/cell-sim.ato:CellSim
+  cell:
+    entry: elec/src/cell.ato:Cell
 dependencies:
 - name: generics
   version_spec: '@09ad6baeaab93d53b9b6c90069ac750f4161d76f'
   link_broken: true
   path: elec/src/generics
+- name: tca9548apwr
+  version_spec: '@203e282316f071778bfa9405f102b97910dfbceb'
+  link_broken: true
+  path: elec/src/tca9548apwr

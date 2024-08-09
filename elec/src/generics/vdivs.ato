@@ -9,7 +9,7 @@ module VDiv from _VDiv:
     v_in: voltage
     v_out: voltage
     i_q: current
-
+    v_in = power.voltage
     i_q = 100uA to 10mA
 
     # assert r_top.value / r_bottom.value within ratio

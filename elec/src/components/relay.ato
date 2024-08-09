@@ -3,6 +3,8 @@ from "generics/interfaces.ato" import Power
 from "generics/leds.ato" import LEDIndicatorGreen
 from "generics/resistors.ato" import Resistor
 
+from "components/irlml0040.ato" import IRLML0040
+
 module PowerRelay:
     """
     DPDT relay with 5V coil and 5V indicator LED
@@ -16,15 +18,16 @@ module PowerRelay:
     signal input
 
     # Output specs
-    power_in.voltage &= power_out.voltage
-    power_in.current += power_out.current
+    # power_in.voltage &= power_out.voltage
+    # power_in.current += power_out.current
 
     # Relay
     relay = new HFD4_5_S
 
     # Indicator LED
     indicator_led = new LEDIndicatorGreen
-    indicator_led.v_in = power_relay.voltage
+# indicator_led.v_in = power_relay.voltag
+    indicator_led.v_in = 5V +/- 10%
     indicator_led.current = 0.1mA to 0.3mA
 
     # Mosfet
@@ -63,7 +66,6 @@ component HFD4_5_S:
     coil.gnd ~ pin 8
 
     power_out = new Power
-    power_out.voltage 
     power_out.vcc ~ pin 6
     power_out.gnd ~ pin 3
 

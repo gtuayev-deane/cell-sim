@@ -20,6 +20,7 @@ from "components/usb-connectors/usb-connectors.ato" import USBCConn
 from "components/tca9548apwr/elec/src/tca9548apwr.ato" import TCA9548APWR
 from "components/xt-connectors/xt-connectors.ato" import XT30_Male_Right_Angle
 from "components/saleae-header/saleae-header.ato" import SaleaeHeader
+from "components/YNR4030.ato" import YNR4030_101M
 
 
 module CellSim:

@@ -5,16 +5,9 @@ component Inductor:
     mpn = "generic_inductor"
     type = "inductor"
 
-component YNR4030_101M from Inductor:
-    # component YNR4030_minus_101M
-    footprint = "IND-SMD_L4.0-W4.0"
-    lcsc_id = "C341017"
-    mpn = "C341017"
-    value = 100uH
-
-component MWSA0402S_2R2MT from Inductor:
-    # component MWSA0402S_minus_2R2MT
-    footprint = "IND-SMD_L4.4-W4.2"
-    lcsc_id = "C408335"
-    mpn = "C408335"
-    value = 2.2uH
+component FerriteBead:
+    signal p1 ~ pin 1
+    signal p2 ~ pin 2
+    designator_prefix = "FB"
+    mpn = "generic_ferrite_bead"
+    type = "ferrite_bead"

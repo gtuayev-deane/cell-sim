@@ -8,16 +8,6 @@ component TCA6408ARGTR:
     lcsc_id = "C181499"
     mpn = "C181499"
 
-    i2c = new I2C
-    i2c.sda ~ pin 13
-    i2c.scl ~ pin 12
-
-    power = new Power
-    power.vcc ~ pin 14
-    power.vcc ~ pin 15
-    power.gnd ~ pin 6
-    power.gnd ~ pin 17
-
     signal RESET ~ pin 1
     signal P0 ~ pin 2
     signal P1 ~ pin 3
@@ -35,6 +25,16 @@ component TCA6408ARGTR:
     signal VCCI ~ pin 15
     signal ADDR ~ pin 16
     signal PAD ~ pin 17
+
+    i2c = new I2C
+    i2c.sda ~ SDA
+    i2c.scl ~ SCL
+
+    power = new Power
+    power.vcc ~ VCCP
+    power.vcc ~ VCCI
+    power.gnd ~ GND
+    power.gnd ~ PAD
 
     # Default pin configuration
     ADDR ~ power.gnd

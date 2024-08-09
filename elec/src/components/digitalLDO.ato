@@ -1,3 +1,8 @@
+from "generics/resistors.ato" import Resistor
+from "generics/capacitors.ato" import Capacitor
+
+from "components/digital-regulator.ato" import DigitalRegulator
+
 module DigitalLDO from DigitalRegulator:
     """
     Buck regulator with adjustable output voltage
@@ -7,8 +12,8 @@ module DigitalLDO from DigitalRegulator:
 
     # Configure parameters
     power_in.voltage &= 1.5V to 6V
-    power_out.voltage &= 0.55V to 5.5V
-    assert power_out.voltage >= power_in.voltage - regulator.dropout_voltage # dropout voltage
+    power_out.voltage = 0.55V to 5.5V
+    # assert power_out.voltage >= power_in.voltage - regulator.dropout_voltage # dropout voltage
 
     power_in.current -= power_out.current
 

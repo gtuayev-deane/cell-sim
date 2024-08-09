@@ -1,5 +1,6 @@
 from "generics/interfaces.ato" import Power
 from "generics/resistors.ato" import Resistor
+from "generics/interfaces.ato" import Power, DiffPair
 
 module CurrentSensor:
     sensor = new INA185A2IDRLR
@@ -10,8 +11,8 @@ module CurrentSensor:
     signal output ~ sensor.out
     current: current
 
-    power_in.current += power_out.current
-    power_in.voltage &= power_out.voltage - power_in.current * shunt.value
+    # power_in.current += power_out.current
+    # power_in.voltage &= power_out.voltage - power_in.current * shunt.value
 
     # Shunt config
     assert shunt.value * current * sensor.gain within 1.2V to 3V

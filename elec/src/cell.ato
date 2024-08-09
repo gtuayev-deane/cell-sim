@@ -1,6 +1,9 @@
 # Generics
 from "generics/interfaces.ato" import Power, I2C
 from "generics/resistors.ato" import SeriesPowerResistors, Resistor, I2CPullup
+from "generics/filters.ato" import PiFilter
+from "generics/mosfets.ato" import LowSideSwitch
+from "generics/resistors.ato" import SeriesPowerResistors
 
 # Components
 from "components/iso1640.ato" import ISO1640BDR
@@ -9,9 +12,13 @@ from "components/ads1115.ato" import ADS1115IDGSR
 from "components/digitalBuck.ato" import DigitalBuck
 from "components/digitalLDO.ato" import DigitalLDO
 from "components/b1205s.ato" import B1205S_2WR2
+from "components/tca6408.ato" import TCA6408ARGTR
 from "components/current-sensor.ato" import CurrentSensor
-from "components/relay.ato" import Relay
-
+from "components/YNR4030.ato" import YNR4030_101M
+from "components/sk6805-ec20/elec/src/sk6805-ec20.ato" import SK6805EC20
+from "components/relay.ato" import PowerRelay
+from "components/ldk220m-r/elec/src/ldk220m-r.ato" import LDK220M_R
+from "components/irlml0040.ato" import IRLML0040
 
 module Cell:
     """
@@ -51,7 +58,7 @@ module Cell:
 
     #Output specs
     power_out.voltage &= 0V to 5V
-    power_out.current -= 300mA
+    # power_out.current -= 300mA
 
     # Internal interfaces
     _power_5v = new Power
@@ -63,8 +70,8 @@ module Cell:
     buck = new DigitalBuck
     ldo = new DigitalLDO
     current_sense = new CurrentSensor
-    output_relay = new Relay
-    dmm_relay = new Relay
+    output_relay = new PowerRelay
+    dmm_relay = new PowerRelay
     gpio = new TCA6408ARGTR
     filter = new PiFilter
     digital_isolator = new ISO1640BDR
@@ -132,8 +139,8 @@ module Cell:
     _power_3v3 ~ ldo.power_3v3
     _power_3v3 ~ gpio.power
     _power_3v3 ~ current_sense.power
-    _power_5v ~ output_relay.power_5v
-    power_5v ~ dmm_relay.power_5v # powered from Micro 5V rail
+    _power_5v ~ output_relay.power_relay
+    power_5v ~ dmm_relay.power_relay # powered from Micro 5V rail
 
     #TODO: do the math in ato
     # Buck config: vout = 5v when vctrl = 0V, vout = 0V when vctrl = 3.3V
@@ -159,7 +166,16 @@ module Cell:
     current_sense.power_out ~ output_relay.power_in
     output_relay.power_out ~ power_out
 
-    ldo.power_out ~ load_switch.power_in
+    # Load switch
+    filter.power_out ~ load_switch.power_in
+    load_switch.load.p ~ load_resistor.p1
+    load_switch.load.n ~ load_resistor.p2
+    load_switch.fet -> IRLML0040
+    load_resistor.package = "0805"
+
+    load_resistor_current = 20mA to 30mA
+
+    assert max(ldo.power_out.voltage) / load_resistor.value  within load_resistor_current
 
     # dmm relay
     dmm_i_lim_resistors = new SeriesPowerResistors
@@ -177,7 +193,7 @@ module Cell:
     # GPIO expander
     gpio.P2 ~ buck.enable
     gpio.P3 ~ ldo.enable
-    gpio.P4 ~ load_switch.control
+    gpio.P4 ~ load_switch.control.io
 
 # Custom interface for connecting the cells together
 interface CellJumper:

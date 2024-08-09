@@ -1,4 +1,4 @@
-from "interfaces.ato" import Power, Load
+import Power from "interfaces.ato"
 import I2C from "interfaces.ato"
 
 component Resistor:
@@ -9,13 +9,24 @@ component Resistor:
     type = "resistor"
     value: resistance
 
-    load = new Load
-    load.p ~ p1
-    load.n ~ p2
-
     # Equations
     # R = V/I
     # R = V^2/P
+
+module I2CPullup:
+    r_sda = new Resistor
+    r_scl = new Resistor
+    power = new Power
+    i2c = new I2C
+
+    r_sda.value = 10kohm +/- 20%
+    r_scl.value = 10kohm +/- 20%
+
+    r_sda.package = "0402"
+    r_scl.package = "0402"
+
+    i2c.sda ~ r_sda.1; r_sda.2 ~ power.vcc
+    i2c.scl ~ r_scl.1; r_scl.2 ~ power.vcc
 
 module SeriesPowerResistors:
     # Resistors in series with a power connection
@@ -32,18 +43,3 @@ module SeriesPowerResistors:
     gnd_resistor.value = 10kohm +/- 5%
     vcc_resistor.package = "0402"
     gnd_resistor.package = "0402"
-
-module I2CPullup:
-    r_sda = new Resistor
-    r_scl = new Resistor
-    power = new Power
-    i2c = new I2C
-
-    r_sda.value = 10kohm +/- 20%
-    r_scl.value = 10kohm +/- 20%
-
-    r_sda.package = "0402"
-    r_scl.package = "0402"
-
-    i2c.sda ~ r_sda.1; r_sda.2 ~ power.vcc
-    i2c.scl ~ r_scl.1; r_scl.2 ~ power.vcc
