@@ -54,21 +54,18 @@ void Cell::setVoltage(float voltage)
     // Set the mux channel
     setMuxChannel();
 
-    // calculate LDO setpoint
-    uint16_t ldo_setpoint = calculateSetpoint(voltage);
+    float buck_voltage = voltage * 1.05;
+    float ldo_voltage = voltage;
 
-    // Buck voltage should not be less than 1.5V
-    if (voltage < 1.5)
-    {
-        voltage = 1.5;
-    }
+    // Buck voltage limits
+    if (buck_voltage < MIN_BUCK_VOLTAGE) buck_voltage = MIN_BUCK_VOLTAGE;
+    if (buck_voltage > MAX_BUCK_VOLTAGE) buck_voltage = MAX_BUCK_VOLTAGE;
+    if (ldo_voltage < MIN_LDO_VOLTAGE) ldo_voltage = MIN_LDO_VOLTAGE;
+    if (ldo_voltage > MAX_LDO_VOLTAGE) ldo_voltage = MAX_LDO_VOLTAGE;
 
-    // Set the buck voltage
-    uint16_t buck_setpoint = calculateSetpoint(voltage);
-
-    // Set LDO to desired voltage
-    buck_dac.setVoltage(buck_setpoint, false);
-    ldo_dac.setVoltage(ldo_setpoint, false);
+    // Set the output voltage
+    setBuckVoltage(buck_voltage);
+    setLDOVoltage(ldo_voltage);
 }
 
 void Cell::turnOnDMMRelay()
@@ -110,22 +107,20 @@ float Cell::getLDOVoltage()
     return volts;
 }
 
-uint16_t Cell::calculateSetpoint(float desiredOutput)
+uint16_t Cell::calculateSetpoint(float voltage, bool useBuckCalibration)
 {
-    // Known setpoints and corresponding output voltages
-    float setpoint1 = 3566;
-    float output1 = 0.5537;
-    float setpoint2 = 1038;
-    float output2 = 3.3971;
+    // Select calibration points based on parameter
+    const std::pair<float, float>* calibration_points = useBuckCalibration ? BUCK_SETPOINTS : LDO_SETPOINTS;
 
-    // Calculate slope (m)
-    float m = (setpoint2 - setpoint1) / (output2 - output1);
+    // Calculate slope using the two points
+    float m = (calibration_points[1].first - calibration_points[0].first) / 
+              (calibration_points[1].second - calibration_points[0].second);
 
-    // Calculate intercept (b)
-    float b = setpoint1 - m * output1;
+    // Calculate intercept
+    float b = calibration_points[0].first - m * calibration_points[0].second;
 
-    // Calculate and return the setpoint for the desired output
-    return static_cast<uint16_t>(m * desiredOutput + b);
+    // Calculate and return the setpoint for the desired voltage
+    return static_cast<uint16_t>(m * voltage + b);
 }
 
 float Cell::getBuckVoltage()
@@ -139,10 +134,18 @@ float Cell::getBuckVoltage()
 void Cell::setBuckVoltage(float voltage)
 {
     setMuxChannel();
-    uint16_t dac_value = (uint16_t)(voltage / 3.3 * 4095);
-    buck_dac.setVoltage(dac_value, false);
+    uint16_t setpoint = calculateSetpoint(voltage, true);
+
+
+    buck_dac.setVoltage(setpoint, false);
 }
 
+void Cell::setLDOVoltage(float voltage)
+{
+    setMuxChannel();
+    uint16_t setpoint = calculateSetpoint(voltage, false);
+    ldo_dac.setVoltage(setpoint, false);
+}
 // Implementation of helper methods
 
 void Cell::setGPIOState()
@@ -160,7 +163,8 @@ float Cell::readShuntCurrent()
     setMuxChannel();
     int16_t adc_value = adc.readADC_SingleEnded(3);
     float volts = adc.computeVolts(adc_value);
-    return volts / 0.1; // Assuming a 0.1 ohm shunt resistor
+
+    return volts / SHUNT_RESISTOR_OHMS / SHUNT_GAIN;
 }
 
 void Cell::setMuxChannel()
