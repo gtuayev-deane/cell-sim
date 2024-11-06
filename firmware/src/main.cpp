@@ -55,164 +55,79 @@ float sum = 0.01;
 void loop()
 {
 
-    cell1.setVoltage(4.0);
-    cell2.setVoltage(4.0); 
-    cell3.setVoltage(4.0);
+    static float voltage = 1.5;
+    static float step = 0.05;  // 10mV steps
 
-    delay(1000);
+    // Update voltage for next iteration
+    voltage += step;
 
+    // Reverse direction at limits
+    if (voltage >= 4.5 || voltage <= 0.4) {
+        step = -step;
+    }
+
+    USBSerial.print(">Setpoint: ");
+    USBSerial.println(voltage);
+
+    cell1.setVoltage(voltage);
+    cell2.setVoltage(voltage);
+    cell3.setVoltage(voltage);
+
+    delay(10);
+
+
+    // Read current
     float cell1_current = cell1.getCurrent();
     float cell2_current = cell2.getCurrent();
     float cell3_current = cell3.getCurrent();
 
-    USBSerial.print(">Cell 1 current: ");
+    USBSerial.print(">Cell 1 current(A): ");
     USBSerial.println(cell1_current, 5);
-    USBSerial.print(">Cell 2 current: ");
+    USBSerial.print(">Cell 2 current(A): ");
     USBSerial.println(cell2_current, 5);
-    USBSerial.print(">Cell 3 current: ");
+    USBSerial.print(">Cell 3 current(A): ");
     USBSerial.println(cell3_current, 5);
-    // if (voltage > 4)
-    // {
-    //     sum = -0.01;
-    // }
-    // if (voltage < 0.02)
-    // {
-    //     sum = 0.01;
-    // }
-    // USBSerial.print(">Setpoint: ");
-    // USBSerial.println(voltage);
 
+    // Read voltage
+    float cell1_voltage = cell1.getVoltage();
+    float cell2_voltage = cell2.getVoltage();
+    float cell3_voltage = cell3.getVoltage();
 
-    // cell1.setVoltage(voltage);
-    // cell2.setVoltage(voltage);
-    // cell3.setVoltage(voltage);
+    USBSerial.print(">Cell 1 voltage(V): ");
+    USBSerial.println(cell1_voltage, 5);
+    USBSerial.print(">Cell 2 voltage(V): ");
+    USBSerial.println(cell2_voltage, 5);
+    USBSerial.print(">Cell 3 voltage(V): ");
+    USBSerial.println(cell3_voltage, 5);
 
-    // float cell1_voltage = cell1.getVoltage();
-    // float cell2_voltage = cell2.getVoltage();
-    // float cell3_voltage = cell3.getVoltage();
+    static unsigned long lastTime = micros();
+    unsigned long currentTime = micros();
+    unsigned long elapsedTime = currentTime - lastTime;
+    lastTime = currentTime;
 
-    // // USBSerial.println(cell1.GPIO_STATE, BIN);
+    // Get buck and LDO voltages
+    float cell1_buck = cell1.getBuckVoltage();
+    float cell2_buck = cell2.getBuckVoltage();
+    float cell3_buck = cell3.getBuckVoltage();
 
-    // // print the voltage of each cell
-    // USBSerial.print(">Cell 1 voltage: ");
-    // USBSerial.println(cell1_voltage,5);
-    // USBSerial.print(">Cell 2 voltage: ");
-    // USBSerial.println(cell2_voltage,5);
-    // USBSerial.print(">Cell 3 voltage: ");
-    // USBSerial.println(cell3_voltage,5);
+    float cell1_ldo = cell1.getLDOVoltage(); 
+    float cell2_ldo = cell2.getLDOVoltage();
+    float cell3_ldo = cell3.getLDOVoltage();
 
+    USBSerial.print(">Cell 1 buck(V): ");
+    USBSerial.println(cell1_buck, 5);
+    USBSerial.print(">Cell 2 buck(V): ");
+    USBSerial.println(cell2_buck, 5);
+    USBSerial.print(">Cell 3 buck(V): ");
+    USBSerial.println(cell3_buck, 5);
 
-    // delay(10);
+    USBSerial.print(">Cell 1 LDO(V): ");
+    USBSerial.println(cell1_ldo, 5);
+    USBSerial.print(">Cell 2 LDO(V): ");
+    USBSerial.println(cell2_ldo, 5);
+    USBSerial.print(">Cell 3 LDO(V): ");
+    USBSerial.println(cell3_ldo, 5);
+
+    USBSerial.print(">Loop time(us): ");
+    USBSerial.println(elapsedTime);
 }
-
-
-
-
-// // GPIOd
-// #define TCA6408_ADDR 0b00100000
-
-// // // ADC
-// Adafruit_ADS1115 adc;
-
-// // DAC
-// Adafruit_MCP4725 ldo_dac;
-// Adafruit_MCP4725 buck_dac;
-
-// #define LDO_DAC_ADDR 0x60
-// #define BUCK_DAC_ADDR 0x61
-
-// // // OLED
-// // #define SCREEN_WIDTH 128 // OLED display width, in pixels
-// // #define SCREEN_HEIGHT 32 // OLED display height, in pixels
-
-// // #define OLED_RESET     -1
-// // #define SCREEN_ADDRESS 0x3C
-// // Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-
-
-// void setup()
-// {
-//     USBSerial.begin(115200);
-//     Wire.setPins(sdaPin, sclPin);
-//     Wire.begin();
-
-//     delay(100);
-
-//     // set the port to 1
-//     Wire.beginTransmission(0x70);
-//     Wire.write(0b000000100);
-//     Wire.endTransmission();
-
-//     adc.begin();
-
-//     ldo_dac.begin(LDO_DAC_ADDR);
-//     buck_dac.begin(BUCK_DAC_ADDR);
-
-//     setupLEDs();
-
-//     // make leds purple and 10% brightness
-//     for (int i = 0; i < NUM_LEDS; i++)
-//     {
-//         leds[i] = CRGB(255, 0, 255);
-//         leds[i].fadeLightBy(230);
-//     }
-
-//     FastLED.show();
-
-// }
-// int counter = 0;
-
-// void loop()
-// {
-//     // Configure GPIO expander
-//     Wire.beginTransmission(0x20);
-//     Wire.write(0x03); // Configuration register
-//     Wire.write(0x00); // Set P7 as output
-//     Wire.endTransmission();
-
-//     // Set output relay on P7
-//     Wire.beginTransmission(TCA6408_ADDR);
-//     Wire.write(0x01); // Output register
-//     Wire.write(0b10001100); // Set P7
-//     Wire.endTransmission();
-
-//     // delay(100);
-//     // // Read back GPIO expander
-//     // Wire.beginTransmission(TCA6408_ADDR);
-//     // Wire.write(0x00); // Output register
-//     // Wire.endTransmission();
-//     // Wire.requestFrom(TCA6408_ADDR, 1);
-//     // uint8_t data = Wire.read();
-//     // USBSerial.println(data, BIN);
-
-//     if (counter > 4095)
-//     {
-//         counter = 0;
-//     }
-//     counter += 100;
-//     buck_dac.setVoltage(0, false);
-//     ldo_dac.setVoltage(0, false);
-//     delay(10);
-
-//     int16_t adc0, adc1, adc2, adc3;
-//     float volts0, volts1, volts2, volts3;
-
-//     adc0 = adc.readADC_SingleEnded(0);
-//     volts0 = adc.computeVolts(adc0);
-//     adc1 = adc.readADC_SingleEnded(1);
-//     volts1 = adc.computeVolts(adc1);
-//     adc2 = adc.readADC_SingleEnded(2);
-//     volts2 = adc.computeVolts(adc2);
-//     adc3 = adc.readADC_SingleEnded(3);
-//     volts3 = adc.computeVolts(adc3);
-//     USBSerial.print("buck: ");
-//     USBSerial.println(volts0);
-//     USBSerial.print("ldo: ");
-//     USBSerial.println(volts1);
-//     USBSerial.print("Output: ");
-//     USBSerial.println(volts2);
-//     USBSerial.print("Shunt: ");
-//     USBSerial.print((volts3/50)/0.13);
-//     USBSerial.println();
-
-// }

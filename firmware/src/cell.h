@@ -24,6 +24,10 @@ public:
     void turnOffDMMRelay();
     void turnOnOutputRelay();
     void turnOffOutputRelay();
+    float getLDOVoltage();
+    void setLDOVoltage(float voltage);
+    float getBuckVoltage();
+    void setBuckVoltage(float voltage);
     uint8_t GPIO_STATE = 0b00000000;
 
 private:
@@ -46,16 +50,26 @@ private:
     Adafruit_ADS1115 adc;
 
     // Private methods
-    float getLDOVoltage();
-    void setLDOVoltage(float voltage);
-    float getBuckVoltage();
-    void setBuckVoltage(float voltage);
-    uint16_t calculateSetpoint(float voltage);
+    uint16_t calculateSetpoint(float voltage, bool useBuckCalibration = true);
 
     // Helper methods for I2C communication
     void setMuxChannel();
     void setGPIOState();
     float readShuntCurrent();
+
+    // Shunt resistor
+    const float SHUNT_RESISTOR_OHMS = 0.11128; // With 50V/V gain: 0.523V / 50 / 0.094A = 0.11128 ohms
+    const float SHUNT_GAIN = 50;
+
+    // Limits
+    const float MIN_BUCK_VOLTAGE = 1.5;
+    const float MAX_BUCK_VOLTAGE = 4.55;
+    const float MIN_LDO_VOLTAGE = 0.35;
+    const float MAX_LDO_VOLTAGE = 4.5;
+
+    // Calibration points
+    const std::pair<float, float> BUCK_SETPOINTS[2] = {{234, 4.5971}, {2625, 1.5041}};
+    const std::pair<float, float> LDO_SETPOINTS[2] = {{42, 4.5176}, {3760, 0.3334}};
 };
 
 #endif // CELL_H
