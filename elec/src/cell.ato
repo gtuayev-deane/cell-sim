@@ -19,7 +19,7 @@ from "components/sk6805-ec20/elec/src/sk6805-ec20.ato" import SK6805EC20
 from "components/relay.ato" import PowerRelay
 from "components/ldk220m-r/elec/src/ldk220m-r.ato" import LDK220M_R
 from "components/irlml0040.ato" import IRLML0040
-from "components/comparator.ato" import Comparator
+# from "components/comparator.ato" import Comparator #TODO: Figure out current limit protection
 
 module Cell:
     """
@@ -81,7 +81,6 @@ module Cell:
     load_switch = new LowSideSwitch
     load_resistor = new Resistor
     i2c_pullup = new I2CPullup
-    protection_comparator = new Comparator
 
     # addresses:
     adc.address = "0x48"
@@ -135,14 +134,14 @@ module Cell:
 
     # Power devices
     power_isolator ~ digital_isolator.power_non_isolated
-    _power_3v3 ~ adc.power
+    _power_5v ~ adc.power
     _power_3v3 ~ digital_isolator.power_isolated
     _power_3v3 ~ buck.power_3v3
     _power_3v3 ~ ldo.power_3v3
     _power_3v3 ~ gpio.power
     _power_3v3 ~ current_sense.power
     _power_5v ~ output_relay.power_relay
-    power_5v ~ dmm_relay.power_relay # powered from Micro 5V rail
+    _power_5v ~ dmm_relay.power_relay
 
     #TODO: do the math in ato
     # Buck config: vout = 5v when vctrl = 0V, vout = 0V when vctrl = 3.3V
@@ -198,23 +197,29 @@ module Cell:
     gpio.P2 ~ buck.enable
     gpio.P3 ~ ldo.enable
     gpio.P4 ~ load_switch.control.io
+    gpio.P5 ~ output_relay.input
+    gpio.P6 ~ dmm_relay.input
 
-    # Connect relay outputs via 10k series resistors
-    output_relay_resistor = new Resistor
-    output_relay_resistor.value = 10kohm +/- 5%
-    gpio.P5 ~ output_relay_resistor.p1
-    output_relay_resistor.p2 ~ output_relay.input
-
-    dmm_relay_resistor = new Resistor
-    dmm_relay_resistor.value = 10kohm +/- 5%
-    gpio.P6 ~ dmm_relay_resistor.p1
-    dmm_relay_resistor.p2 ~ dmm_relay.input
-
-    # Comparator - current limit protection, pulls down output_relay when current limit is reached
-    current_sense.output ~ protection_comparator.input_channel_1
-    protection_comparator.output_channel_1 ~ output_relay.input
-
+    # Netname overrides
+    power_out.vcc.override_net_name = "CELL_POWER_OUT_VCC"
+    power_out.gnd.override_net_name = "CELL_POWER_OUT_GND"
+    _power_5v.vcc.override_net_name = "CELL_5V_VCC"
+    _power_3v3.vcc.override_net_name = "CELL_3V3_VCC"
+    _power_3v3.gnd.override_net_name = "CELL_GND"
+    _iso_i2c.scl.override_net_name = "CELL_I2C_SCL"
+    _iso_i2c.sda.override_net_name = "CELL_I2C_SDA"
+    buck.enable.override_net_name = "CELL_BUCK_ENABLE"
+    ldo.enable.override_net_name = "CELL_LDO_ENABLE"
+    load_switch.control.override_net_name = "CELL_LOAD_SWITCH_CONTROL"
+    output_relay.input.override_net_name = "CELL_OUTPUT_RELAY_CONTROL"
+    dmm_relay.input.override_net_name = "CELL_DMM_RELAY_CONTROL"
+    current_sense.output.override_net_name = "CELL_CURRENT_SENSE_OUTPUT"
+    filter.power_out.vcc.override_net_name = "CELL_FILTER_POWER_OUT_VCC"
+    buck.power_out.vcc.override_net_name = "CELL_BUCK_POWER_OUT_VCC"
+    ldo.power_out.vcc.override_net_name = "CELL_LDO_POWER_OUT_VCC"
+    current_sense.power_out.vcc.override_net_name = "CELL_CURRENT_SENSE_POWER_OUT_VCC"
     
+
 
 # Custom interface for connecting the cells together
 interface CellJumper:
