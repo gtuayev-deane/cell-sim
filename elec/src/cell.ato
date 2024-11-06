@@ -200,25 +200,22 @@ module Cell:
     gpio.P5 ~ output_relay.input
     gpio.P6 ~ dmm_relay.input
 
-    # Netname overrides
-    power_out.vcc.override_net_name = "CELL_POWER_OUT_VCC"
-    power_out.gnd.override_net_name = "CELL_POWER_OUT_GND"
-    _power_5v.vcc.override_net_name = "CELL_5V_VCC"
-    _power_3v3.vcc.override_net_name = "CELL_3V3_VCC"
-    _power_3v3.gnd.override_net_name = "CELL_GND"
-    _iso_i2c.scl.override_net_name = "CELL_I2C_SCL"
-    _iso_i2c.sda.override_net_name = "CELL_I2C_SDA"
-    buck.enable.override_net_name = "CELL_BUCK_ENABLE"
-    ldo.enable.override_net_name = "CELL_LDO_ENABLE"
-    load_switch.control.override_net_name = "CELL_LOAD_SWITCH_CONTROL"
-    output_relay.input.override_net_name = "CELL_OUTPUT_RELAY_CONTROL"
-    dmm_relay.input.override_net_name = "CELL_DMM_RELAY_CONTROL"
-    current_sense.output.override_net_name = "CELL_CURRENT_SENSE_OUTPUT"
-    filter.power_out.vcc.override_net_name = "CELL_FILTER_POWER_OUT_VCC"
-    buck.power_out.vcc.override_net_name = "CELL_BUCK_POWER_OUT_VCC"
-    ldo.power_out.vcc.override_net_name = "CELL_LDO_POWER_OUT_VCC"
-    current_sense.power_out.vcc.override_net_name = "CELL_CURRENT_SENSE_POWER_OUT_VCC"
-    
+    # Netname overrides - doesnt work well with patterns
+    # _power_5v.vcc.override_net_name = "CELL_5V_VCC"
+    # _power_3v3.vcc.override_net_name = "CELL_3V3_VCC"
+    # _power_3v3.gnd.override_net_name = "CELL_GND"
+    # _iso_i2c.scl.override_net_name = "CELL_I2C_SCL"
+    # _iso_i2c.sda.override_net_name = "CELL_I2C_SDA"
+    # buck.enable.override_net_name = "CELL_BUCK_ENABLE"
+    # ldo.enable.override_net_name = "CELL_LDO_ENABLE"
+    # load_switch.control.override_net_name = "CELL_LOAD_SWITCH_CONTROL"
+    # output_relay.input.override_net_name = "CELL_OUTPUT_RELAY_CONTROL"
+    # dmm_relay.input.override_net_name = "CELL_DMM_RELAY_CONTROL"
+    # current_sense.output.override_net_name = "CELL_CURRENT_SENSE_OUTPUT"
+    # filter.power_out.vcc.override_net_name = "CELL_FILTER_POWER_OUT_VCC"
+    # buck.power_out.vcc.override_net_name = "CELL_BUCK_POWER_OUT_VCC"
+    # ldo.power_out.vcc.override_net_name = "CELL_LDO_POWER_OUT_VCC"
+    # current_sense.power_out.vcc.override_net_name = "CELL_CURRENT_SENSE_POWER_OUT_VCC"
 
 
 # Custom interface for connecting the cells together
