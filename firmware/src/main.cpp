@@ -5,7 +5,7 @@
 // #include <Adafruit_SSD1306.h> // OLED
 #include <Adafruit_MCP4725.h> // DAC
 #include <Adafruit_ADS1X15.h> // ADC
-// #include <FastLED.h>          // Addressable LEDs
+#include <FastLED.h>          // Addressable LEDs
 
 
 // Micro pinout
@@ -13,19 +13,49 @@
 #define sdaPin 7
 #define sclPin 6
 
-// // Addressable LEDs
-// #define NUM_LEDS 6
-// CRGB leds[NUM_LEDS];
+// Addressable LEDs
+#define NUM_LEDS 6
+CRGB leds[NUM_LEDS];
 
 // Create cells
 Cell cell1(1);
 Cell cell2(2);
 Cell cell3(3);
 
-// void setupLEDs()
-// {
-//     FastLED.addLeds<NEOPIXEL, ledPin>(leds, NUM_LEDS);
-// }
+void setupLEDs()
+{
+    FastLED.addLeds<NEOPIXEL, ledPin>(leds, NUM_LEDS);
+}
+
+void updateStatusLEDs(float v1, float v2, float v3, float i1, float i2, float i3) {
+    // Constants for max values
+    const float MAX_VOLTAGE = 4.5;  // Maximum voltage
+    const float MAX_CURRENT = 0.5;  // Maximum current in amps
+    
+    // Calculate brightness as fraction of maximum (0-255)
+    uint8_t i1_bright = constrain((i1 / MAX_CURRENT) * 255, 0, 255);
+    uint8_t i2_bright = constrain((i2 / MAX_CURRENT) * 255, 0, 255);
+    uint8_t i3_bright = constrain((i3 / MAX_CURRENT) * 255, 0, 255);
+    
+    uint8_t v1_bright = constrain((v1 / MAX_VOLTAGE) * 255, 0, 255);
+    uint8_t v2_bright = constrain((v2 / MAX_VOLTAGE) * 255, 0, 255);
+    uint8_t v3_bright = constrain((v3 / MAX_VOLTAGE) * 255, 0, 255);
+
+    // Set LED colors - Current LEDs are red, Voltage LEDs are blue
+    // Cell 1
+    leds[0] = CRGB(i1_bright, 0, 0);  // Current LED
+    leds[1] = CRGB(0, 0, v1_bright);  // Voltage LED
+    
+    // Cell 2
+    leds[2] = CRGB(i2_bright, 0, 0);  // Current LED
+    leds[3] = CRGB(0, 0, v2_bright);  // Voltage LED
+    
+    // Cell 3
+    leds[4] = CRGB(i3_bright, 0, 0);  // Current LED
+    leds[5] = CRGB(0, 0, v3_bright);  // Voltage LED
+
+    FastLED.show();
+}
 
 void setup()
 {
@@ -48,6 +78,9 @@ void setup()
     cell1.enable();
     cell2.enable();
     cell3.enable();
+
+    FastLED.addLeds<NEOPIXEL, ledPin>(leds, NUM_LEDS);
+    FastLED.setBrightness(255);
 }
 
 float voltage = 0.02;
@@ -130,4 +163,12 @@ void loop()
 
     USBSerial.print(">Loop time(us): ");
     USBSerial.println(elapsedTime);
+
+    // Update status LEDs
+    updateStatusLEDs(
+        cell1_voltage, cell2_voltage, cell3_voltage,
+        cell1_current, cell2_current, cell3_current
+    );
 }
+
+
