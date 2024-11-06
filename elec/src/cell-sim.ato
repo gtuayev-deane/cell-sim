@@ -11,6 +11,7 @@ from "generics/inductors.ato" import Inductor
 from "generics/filters.ato" import PiFilter
 from "generics/vdivs.ato" import _VDiv
 
+from "cell.ato" import Cell
 from "components/esp32-s3/elec/src/esp32-s3.ato" import ESP32S3
 from "components/level-shifter/elec/src/level-shifter.ato" import LevelShifter
 from "components/sk6805-ec20/elec/src/sk6805-ec20.ato" import SK6805EC20
@@ -21,6 +22,8 @@ from "components/tca9548apwr/elec/src/tca9548apwr.ato" import TCA9548APWR
 from "components/xt-connectors/xt-connectors.ato" import XT30_Male_Right_Angle
 from "components/saleae-header/saleae-header.ato" import SaleaeHeader
 from "components/YNR4030.ato" import YNR4030_101M
+from "components/current-sensor.ato" import CurrentSensor
+# from "components/banana-power/banana-power.ato" import BananaPower
 
 
 module CellSim:
@@ -34,16 +37,16 @@ module CellSim:
     usbc = new USBCConn
 
     # Power input
-    input_filter = new PiFilter
-    power_connector = new XT30_Male_Right_Angle
-    current_sensor = new CurrentSensor
-    current_sensor.current = 10A
-    power_connector.power ~ input_filter.power_in
-    input_filter.power_out ~ current_sensor.power_in
-    current_sensor.power_out ~ power_in
+    # input_filter = new PiFilter
+    # power_connector = new XT30_Male_Right_Angle
+    # current_sensor = new CurrentSensor
+    # current_sensor.current = 10A
+    # power_connector.power ~ input_filter.power_in
+    # input_filter.power_out ~ current_sensor.power_in
+    # current_sensor.power_out ~ power_in
 
     # Configure current sensor
-    power_3v3 ~ current_sensor.power
+    # power_3v3 ~ current_sensor.power
 
     # Input voltage sense
     voltage_sense = new VDiv
@@ -52,18 +55,18 @@ module CellSim:
     voltage_sense.out ~ micro.io16
 
     # DMM output
-    dmm_connector = new BananaPower
-    dmm_connector.power ~ dmm_out
+    # dmm_connector = new BananaPower
+    # dmm_connector.power ~ dmm_out
 
     # Micro connections
     power_3v3 ~ micro.power
     usbc.usb2 ~ micro.usb2
 
     # LCD
-    lcd = new LCDConnector
-    power_3v3 ~ lcd.power
-    micro.i2c ~ lcd.i2c
-    lcd.address = "0x3C"
+    # lcd = new LCDConnector
+    # power_3v3 ~ lcd.power
+    # micro.i2c ~ lcd.i2c
+    # lcd.address = "0x3C"
 
     # I2C mux
     mux = new TCA9548APWR

@@ -51,6 +51,7 @@ module HalfBridge:
     gate_high.gnd ~ power.gnd
     gate_low.gnd ~ power.gnd
 
+
 module LowSideSwitch:
     fet = new NFET
     gate_resistor = new Resistor
@@ -61,7 +62,6 @@ module LowSideSwitch:
 
     power_in = new Power
     load = new Load
-
     control = new Pair
 
     # connect up circuit

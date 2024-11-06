@@ -19,6 +19,7 @@ from "components/sk6805-ec20/elec/src/sk6805-ec20.ato" import SK6805EC20
 from "components/relay.ato" import PowerRelay
 from "components/ldk220m-r/elec/src/ldk220m-r.ato" import LDK220M_R
 from "components/irlml0040.ato" import IRLML0040
+from "components/comparator.ato" import Comparator
 
 module Cell:
     """
@@ -80,6 +81,7 @@ module Cell:
     load_switch = new LowSideSwitch
     load_resistor = new Resistor
     i2c_pullup = new I2CPullup
+    protection_comparator = new Comparator
 
     # addresses:
     adc.address = "0x48"
@@ -172,6 +174,8 @@ module Cell:
     load_switch.load.n ~ load_resistor.p2
     load_switch.fet -> IRLML0040
     load_resistor.package = "0805"
+    load_switch.pulldown_resistor.package = "0402"
+    load_switch.gate_resistor.package = "0402"
 
     load_resistor_current = 20mA to 30mA
 
@@ -194,6 +198,23 @@ module Cell:
     gpio.P2 ~ buck.enable
     gpio.P3 ~ ldo.enable
     gpio.P4 ~ load_switch.control.io
+
+    # Connect relay outputs via 10k series resistors
+    output_relay_resistor = new Resistor
+    output_relay_resistor.value = 10kohm +/- 5%
+    gpio.P5 ~ output_relay_resistor.p1
+    output_relay_resistor.p2 ~ output_relay.input
+
+    dmm_relay_resistor = new Resistor
+    dmm_relay_resistor.value = 10kohm +/- 5%
+    gpio.P6 ~ dmm_relay_resistor.p1
+    dmm_relay_resistor.p2 ~ dmm_relay.input
+
+    # Comparator - current limit protection, pulls down output_relay when current limit is reached
+    current_sense.output ~ protection_comparator.input_channel_1
+    protection_comparator.output_channel_1 ~ output_relay.input
+
+    
 
 # Custom interface for connecting the cells together
 interface CellJumper:
