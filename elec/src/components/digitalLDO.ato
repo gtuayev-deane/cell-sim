@@ -30,15 +30,15 @@ module DigitalLDO from DigitalRegulator:
     output_cap_1.package = "0402"
     power_out ~ output_cap_1.power
 
-    output_cap_2 = new Capacitor
-    output_cap_2.value = 100nF +/- 10%
-    output_cap_2.package = "0402"
-    power_out ~ output_cap_2.power
+    # output_cap_2 = new Capacitor
+    # output_cap_2.value = 100nF +/- 10%
+    # output_cap_2.package = "0402"
+    # power_out ~ output_cap_2.power
 
-    output_cap_3 = new Capacitor
-    output_cap_3.value = 10nF +/- 10%
-    output_cap_3.package = "0402"
-    power_out ~ output_cap_3.power
+    # output_cap_3 = new Capacitor
+    # output_cap_3.value = 10nF +/- 10%
+    # output_cap_3.package = "0402"
+    # power_out ~ output_cap_3.power
 
     # Enable
     enable_resistor = new Resistor

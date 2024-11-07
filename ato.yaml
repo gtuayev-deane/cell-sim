@@ -37,3 +37,7 @@ dependencies:
   version_spec: '@63615f935a2727e9b8d55e61e7fb02d444641778'
   link_broken: true
   path: elec/src/lv2842xlvddcr
+- name: xt-connectors
+  version_spec: '@3719ec970da96df05b6763671993ca2276df968b'
+  link_broken: true
+  path: elec/src/xt-connectors

@@ -23,7 +23,9 @@ from "components/xt-connectors/xt-connectors.ato" import XT30_Male_Right_Angle
 from "components/saleae-header/saleae-header.ato" import SaleaeHeader
 from "components/YNR4030.ato" import YNR4030_101M
 from "components/current-sensor.ato" import CurrentSensor
-# from "components/banana-power/banana-power.ato" import BananaPower
+from "components/CD74HC4067SM96.ato" import CD74HC4067SM96 # multiplexer
+from "components/banana-power.ato" import BananaPower
+from "components/lcd-connector.ato" import LCDConnector
 
 
 module CellSim:
@@ -36,7 +38,7 @@ module CellSim:
     micro = new ESP32S3
     usbc = new USBCConn
 
-    # Power input
+    # Power input #TODO: add input filter and current sensor
     # input_filter = new PiFilter
     # power_connector = new XT30_Male_Right_Angle
     # current_sensor = new CurrentSensor
@@ -55,8 +57,8 @@ module CellSim:
     voltage_sense.out ~ micro.io16
 
     # DMM output
-    # dmm_connector = new BananaPower
-    # dmm_connector.power ~ dmm_out
+    dmm_connector = new BananaPower
+    dmm_connector.power ~ dmm_out
 
     # Micro connections
     power_3v3 ~ micro.power
@@ -107,6 +109,15 @@ module CellSim:
     power_5v ~ level_shifter.power_hv
     micro.io15 ~ level_shifter.lv_signal
 
+    # Multiplexer
+    dmm_mux = new CD74HC4067SM96
+    power_3v3 ~ dmm_mux.power
+    micro.io5 ~ dmm_mux.nEnable
+    micro.io1 ~ dmm_mux.CH0
+    micro.io2 ~ dmm_mux.CH1
+    micro.io3 ~ dmm_mux.CH2
+    micro.io4 ~ dmm_mux.CH3
+
     # Connect cells in a stack
     cell1 = new Cell
     mux.i2c1 ~ cell1.i2c
@@ -116,6 +127,7 @@ module CellSim:
     dmm_out ~ cell1.dmm_out
     level_shifter.hv_signal ~ cell1.cell_down.led_data
     power_in.gnd ~ cell1.cell_down.cell
+    dmm_mux.CH0 ~ cell1.dmm_relay_enable
 
     cell2 = new Cell
     mux.i2c2 ~ cell2.i2c
@@ -124,6 +136,7 @@ module CellSim:
     power_3v3 ~ cell2.power_isolator
     dmm_out ~ cell2.dmm_out
     cell1.cell_up ~ cell2.cell_down
+    dmm_mux.CH1 ~ cell2.dmm_relay_enable
 
     cell3 = new Cell
     mux.i2c3 ~ cell3.i2c
@@ -132,10 +145,43 @@ module CellSim:
     power_3v3 ~ cell3.power_isolator
     dmm_out ~ cell3.dmm_out
     cell2.cell_up ~ cell3.cell_down
+    dmm_mux.CH2 ~ cell3.dmm_relay_enable
 
-    # Connect power_batt across the stack
-    power_batt.vcc ~ cell3.power_out.vcc
-    power_batt.gnd ~ cell1.power_out.gnd
+    cell4 = new Cell
+    mux.i2c4 ~ cell4.i2c
+    power_in ~ cell4.power_in
+    power_5v ~ cell4.power_5v
+    power_3v3 ~ cell4.power_isolator
+    dmm_out ~ cell4.dmm_out
+    cell3.cell_up ~ cell4.cell_down
+    dmm_mux.CH3 ~ cell4.dmm_relay_enable
+
+    cell5 = new Cell
+    mux.i2c5 ~ cell5.i2c
+    power_in ~ cell5.power_in
+    power_5v ~ cell5.power_5v
+    power_3v3 ~ cell5.power_isolator
+    dmm_out ~ cell5.dmm_out
+    cell4.cell_up ~ cell5.cell_down
+    dmm_mux.CH4 ~ cell5.dmm_relay_enable
+
+    cell6 = new Cell
+    mux.i2c6 ~ cell6.i2c
+    power_in ~ cell6.power_in
+    power_5v ~ cell6.power_5v
+    power_3v3 ~ cell6.power_isolator
+    dmm_out ~ cell6.dmm_out
+    cell5.cell_up ~ cell6.cell_down
+    dmm_mux.CH5 ~ cell6.dmm_relay_enable
+
+    cell7 = new Cell
+    mux.i2c7 ~ cell7.i2c
+    power_in ~ cell7.power_in
+    power_5v ~ cell7.power_5v
+    power_3v3 ~ cell7.power_isolator
+    dmm_out ~ cell7.dmm_out
+    cell6.cell_up ~ cell7.cell_down
+    dmm_mux.CH6 ~ cell7.dmm_relay_enable
 
     # Debugging
     i2c_debug = new SaleaeHeader

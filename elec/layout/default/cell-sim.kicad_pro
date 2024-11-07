@@ -79,6 +79,7 @@
         "footprint_type_mismatch": "ignore",
         "hole_clearance": "error",
         "hole_near_hole": "error",
+        "holes_co_located": "warning",
         "invalid_outline": "error",
         "isolated_copper": "warning",
         "item_on_disabled_layer": "error",
@@ -273,7 +274,7 @@
     "last_paths": {
       "gencad": "",
       "idf": "",
-      "netlist": "../../../build/cell-sim.net",
+      "netlist": "../../../build/default.net",
       "plot": "",
       "pos_files": "",
       "specctra_dsn": "",
