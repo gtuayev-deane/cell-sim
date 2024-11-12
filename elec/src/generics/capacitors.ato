@@ -12,8 +12,8 @@ component Capacitor:
     power.gnd ~ p2
 
 component CapacitorElectrolytic:
-    signal anode ~ pin 1
-    signal cathode ~ pin 2
+    signal anode
+    signal cathode
     designator_prefix = "C"
     mpn = "generic_capacitor"
 
