@@ -68,12 +68,12 @@ module ESP32S3:
 
     # connect up I2C
     i2c = new I2C
-    i2c.scl ~ ic.IO21
-    i2c.sda ~ ic.IO22
+    i2c.scl ~ ic.IO6
+    i2c.sda ~ ic.IO7
 
     i2c2 = new I2C
     i2c2.scl ~ ic.IO18
-    i2c2.sda ~ ic.IO19
+    i2c2.sda ~ ic.IO17
 
     # pass through GPIO
     signal io0 ~ ic.IO0

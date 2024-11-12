@@ -109,6 +109,14 @@ module CellSim:
     i2c_pullup.r_scl.package = "0402"
     i2c_pullup.r_sda.package = "0402"
 
+    i2c_2_pullup = new I2CPullup
+    power_3v3 ~ i2c_2_pullup.power
+    micro.i2c2 ~ i2c_2_pullup.i2c
+    i2c_2_pullup.r_scl.value = 2kohm +/- 20%
+    i2c_2_pullup.r_sda.value = 2kohm +/- 20%
+    i2c_2_pullup.r_scl.package = "0402"
+    i2c_2_pullup.r_sda.package = "0402"
+
     # regulator to 5V
     buck = new LV2842Kit
     buck.v_in = 12V +/- 10%
