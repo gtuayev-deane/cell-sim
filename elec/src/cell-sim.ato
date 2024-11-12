@@ -97,8 +97,8 @@ module CellSim:
 
     mux_2 = new TCA9548APWR
     power_3v3 ~ mux_2.power
-    micro.i2c ~ mux_2.i2c
-    mux_2.address = "0x71"
+    micro.i2c2 ~ mux_2.i2c
+    mux_2.address = "0x70"
 
 
     i2c_pullup = new I2CPullup
