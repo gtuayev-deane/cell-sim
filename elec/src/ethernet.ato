@@ -292,13 +292,11 @@ component W5500:
     signal AVDD ~ pin 4
     signal RXN ~ pin 5
     signal RXP ~ pin 6
-    signal DNC ~ pin 7
     AVDD ~ pin 8
     AGND ~ pin 9
     signal EXRES1 ~ pin 10
     AVDD ~ pin 11
     signal NC ~ pin 12
-    NC ~ pin 13
     AGND ~ pin 14
     AVDD ~ pin 15
     AGND ~ pin 16
@@ -308,7 +306,6 @@ component W5500:
     signal TOCAP ~ pin 20
     AVDD ~ pin 21
     signal _1V2O ~ pin 22
-    signal RSVD ~ pin 23
     signal SPDLED ~ pin 24
     signal LINKLED ~ pin 25
     signal DUPLED ~ pin 26
@@ -323,15 +320,7 @@ component W5500:
     signal MOSI ~ pin 35
     signal INTn ~ pin 36
     signal RSTn ~ pin 37
-    RSVD ~ pin 38
-    RSVD ~ pin 39
-    RSVD ~ pin 40
-    RSVD ~ pin 41
-    RSVD ~ pin 42
     signal PMODE2 ~ pin 43
     signal PMODE1 ~ pin 44
     signal PMODE0 ~ pin 45
-    NC ~ pin 46
-    NC ~ pin 47
     AGND ~ pin 48
-
