@@ -30,6 +30,8 @@ from "components/RVT1E471M1010_C3351.ato" import RVT1E471M1010_C3351
 from "components/7447709101.ato" import Wurth7447709101
 from "components/FMF06FTHR010.ato" import FMF06FTHR010_LHL
 from "components/IDC-VSH-connector.ato" import IDC_VSH_connector
+from "ethernet.ato" import W5500Ethernet
+from "components/Molex_5018762240.ato" import Molex_5018762240
 
 
 module CellSim:
@@ -41,6 +43,7 @@ module CellSim:
 
     micro = new ESP32S3
     usbc = new USBCConn
+    ethernet = new W5500Ethernet
 
     # Power input #TODO: add input filter and current sensor
     input_filter = new PiFilter
@@ -90,6 +93,12 @@ module CellSim:
     micro.i2c ~ lcd.i2c
     lcd.address = "0x3C"
 
+    # Ethernet
+    power_3v3 ~ ethernet.power
+    micro.spi2 ~ ethernet.spi
+    micro.io35 ~ ethernet.interrupt
+    micro.io36 ~ ethernet.reset
+
     # I2C mux
     mux_1 = new TCA9548APWR
     power_3v3 ~ mux_1.power
@@ -100,7 +109,6 @@ module CellSim:
     power_3v3 ~ mux_2.power
     micro.i2c2 ~ mux_2.i2c
     mux_2.address = "0x70"
-
 
     i2c_pullup = new I2CPullup
     power_3v3 ~ i2c_pullup.power
@@ -318,6 +326,22 @@ module CellSim:
     cell15.power_out.vcc ~ idc_vsh.cell15
     cell16.power_out.vcc ~ idc_vsh.cell16
 
+    # Molex VSH connector
+    molex_vsh = new Molex_5018762240
+    cell1.power_out.gnd ~ molex_vsh.p13
+    cell1.power_out.vcc ~ molex_vsh.p12
+    cell2.power_out.vcc ~ molex_vsh.p11
+    cell3.power_out.vcc ~ molex_vsh.p10
+    cell4.power_out.vcc ~ molex_vsh.p9
+    cell5.power_out.vcc ~ molex_vsh.p8
+    cell6.power_out.vcc ~ molex_vsh.p7
+    cell7.power_out.vcc ~ molex_vsh.p6
+    cell8.power_out.vcc ~ molex_vsh.p5
+    cell9.power_out.vcc ~ molex_vsh.p4
+    cell10.power_out.vcc ~ molex_vsh.p3
+    cell11.power_out.vcc ~ molex_vsh.p2
+    cell12.power_out.vcc ~ molex_vsh.p1
+
     # Power net tie jumpers
     power_jumper_vcc = new Resistor
     power_jumper_vcc.value = 0ohm
@@ -347,6 +371,19 @@ module CellSim:
     power_3v3.vcc.override_net_name = "POWER_3V3_VCC"
     dmm_out.vcc.override_net_name = "DMM_OUT_VCC"
     dmm_out.gnd.override_net_name = "DMM_OUT_GND"
+
+    ethernet.interrupt.override_net_name = "ETHERNET_INTERRUPT"
+    ethernet.reset.override_net_name = "ETHERNET_RESET"
+
+    micro.i2c.scl.override_net_name = "MICRO_I2C_1_SCL"
+    micro.i2c.sda.override_net_name = "MICRO_I2C_1_SDA"
+    micro.i2c2.scl.override_net_name = "MICRO_I2C_2_SCL"
+    micro.i2c2.sda.override_net_name = "MICRO_I2C_2_SDA"
+
+    micro.spi2.sck.override_net_name = "MICRO_SPI_2_SCK"
+    micro.spi2.mosi.override_net_name = "MICRO_SPI_2_MOSI"
+    micro.spi2.miso.override_net_name = "MICRO_SPI_2_MISO"
+    micro.spi2.cs.override_net_name = "MICRO_SPI_2_CS"
 
     cell1._power_5v.vcc.override_net_name = "CELL1_5V_VCC"
     cell1._power_3v3.vcc.override_net_name = "CELL1_3V3_VCC"
