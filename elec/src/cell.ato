@@ -141,7 +141,7 @@ module Cell:
     _power_3v3 ~ gpio.power
     _power_3v3 ~ current_sense.power
     _power_5v ~ output_relay.power_relay
-    _power_5v ~ dmm_relay.power_relay
+    power_5v ~ dmm_relay.power_relay
 
     #TODO: do the math in ato
     # Buck config: vout = 5v when vctrl = 0V, vout = 0V when vctrl = 3.3V
@@ -155,7 +155,6 @@ module Cell:
     ldo.feedback_div.r_top.value = 60kohm +/- 2%
     ldo.feedback_div.r_bottom.value = 10kohm +/- 2%
     ldo.ctrl_resistor.value = 43kohm +/- 2%
-
 
     # Connect Cell components
     power_in ~ isolated_converter.power_in
@@ -190,15 +189,14 @@ module Cell:
     # ADC connections
     adc.AIN0 ~ buck.power_out.vcc
     adc.AIN1 ~ ldo.power_out.vcc
-    adc.AIN2 ~ power_out.vcc
-    adc.AIN3 ~ current_sense.output
+    adc.AIN2 ~ current_sense.output
+    adc.AIN3 ~ current_sense.power_out.vcc
 
     # GPIO expander
     gpio.P2 ~ buck.enable
     gpio.P3 ~ ldo.enable
     gpio.P4 ~ load_switch.control.io
     gpio.P5 ~ output_relay.input
-    gpio.P6 ~ dmm_relay.input
 
     # Netname overrides - doesnt work well with patterns
     # _power_5v.vcc.override_net_name = "CELL_5V_VCC"
