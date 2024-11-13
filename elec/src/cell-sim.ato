@@ -30,6 +30,7 @@ from "components/RVT1E471M1010_C3351.ato" import RVT1E471M1010_C3351
 from "components/7447709101.ato" import Wurth7447709101
 from "components/FMF06FTHR010.ato" import FMF06FTHR010_LHL
 from "components/IDC-VSH-connector.ato" import IDC_VSH_connector
+from "ethernet.ato" import W5500Ethernet
 
 
 module CellSim:
@@ -41,6 +42,7 @@ module CellSim:
 
     micro = new ESP32S3
     usbc = new USBCConn
+    ethernet = new W5500Ethernet
 
     # Power input #TODO: add input filter and current sensor
     input_filter = new PiFilter
@@ -90,6 +92,12 @@ module CellSim:
     micro.i2c ~ lcd.i2c
     lcd.address = "0x3C"
 
+    # Ethernet
+    power_3v3 ~ ethernet.power
+    micro.spi2 ~ ethernet.spi
+    micro.io35 ~ ethernet.interrupt
+    micro.io36 ~ ethernet.reset
+
     # I2C mux
     mux_1 = new TCA9548APWR
     power_3v3 ~ mux_1.power
@@ -100,7 +108,6 @@ module CellSim:
     power_3v3 ~ mux_2.power
     micro.i2c2 ~ mux_2.i2c
     mux_2.address = "0x70"
-
 
     i2c_pullup = new I2CPullup
     power_3v3 ~ i2c_pullup.power
