@@ -57,6 +57,11 @@ module SaleaeHeader:
     i2c.sda ~ ch1.io
     i2c.gnd ~ gnd
 
+    i2c2 = new I2C
+    i2c2.scl ~ ch2.io
+    i2c2.sda ~ ch3.io
+    i2c2.gnd ~ gnd
+
     # UART
     uart = new UART
     uart.tx ~ ch2.io

@@ -29,6 +29,7 @@ from "components/lcd-connector.ato" import LCDConnector
 from "components/RVT1E471M1010_C3351.ato" import RVT1E471M1010_C3351
 from "components/7447709101.ato" import Wurth7447709101
 from "components/FMF06FTHR010.ato" import FMF06FTHR010_LHL
+from "components/IDC-VSH-connector.ato" import IDC_VSH_connector
 
 
 module CellSim:
@@ -217,7 +218,7 @@ module CellSim:
     dmm_mux.CH6 ~ cell7.dmm_relay_enable
 
     cell8 = new Cell
-    mux_2.i2c7 ~ cell8.i2c
+    mux_1.i2c7 ~ cell8.i2c
     power_in ~ cell8.power_in
     power_5v ~ cell8.power_5v
     power_3v3 ~ cell8.power_isolator
@@ -297,15 +298,56 @@ module CellSim:
     cell15.cell_up ~ cell16.cell_down
     dmm_mux.CH15 ~ cell16.dmm_relay_enable
 
+    # IDC-VSH connector
+    idc_vsh = new IDC_VSH_connector
+    cell1.power_out.gnd ~ idc_vsh.cell0
+    cell1.power_out.vcc ~ idc_vsh.cell1
+    cell2.power_out.vcc ~ idc_vsh.cell2
+    cell3.power_out.vcc ~ idc_vsh.cell3
+    cell4.power_out.vcc ~ idc_vsh.cell4
+    cell5.power_out.vcc ~ idc_vsh.cell5
+    cell6.power_out.vcc ~ idc_vsh.cell6
+    cell7.power_out.vcc ~ idc_vsh.cell7
+    cell8.power_out.vcc ~ idc_vsh.cell8
+    cell9.power_out.vcc ~ idc_vsh.cell9
+    cell10.power_out.vcc ~ idc_vsh.cell10
+    cell11.power_out.vcc ~ idc_vsh.cell11
+    cell12.power_out.vcc ~ idc_vsh.cell12
+    cell13.power_out.vcc ~ idc_vsh.cell13
+    cell14.power_out.vcc ~ idc_vsh.cell14
+    cell15.power_out.vcc ~ idc_vsh.cell15
+    cell16.power_out.vcc ~ idc_vsh.cell16
+
+    # Power net tie jumpers
+    power_jumper_vcc = new Resistor
+    power_jumper_vcc.value = 0ohm
+    power_jumper_vcc.package = "0402"
+    cell16.power_out.vcc ~ power_jumper_vcc.p1
+    power_jumper_vcc.p2 ~ idc_vsh.power.vcc
+
+    power_jumper_gnd = new Resistor 
+    power_jumper_gnd.value = 0ohm
+    power_jumper_gnd.package = "0402"
+    cell1.power_out.gnd ~ power_jumper_gnd.p1
+    power_jumper_gnd.p2 ~ idc_vsh.power.gnd
+
     # Debugging
     i2c_debug = new SaleaeHeader
     micro.i2c ~ i2c_debug.i2c
-    power_5v.vcc ~ i2c_debug.ch2.io
-    power_3v3.vcc ~ i2c_debug.ch3.io
+    micro.i2c2 ~ i2c_debug.i2c2
     i2c_debug.gnd ~ power_in.gnd
 
 
     # Netname overrides
+    power_in.vcc.override_net_name = "POWER_IN_VCC"
+    power_in.gnd.override_net_name = "POWER_IN_GND"
+    power_in.vcc.override_net_name = "POWER_IN_VCC"
+    power_batt.vcc.override_net_name = "POWER_BATT_VCC"
+    power_5v.vcc.override_net_name = "POWER_5V_VCC"
+    power_3v3.vcc.override_net_name = "POWER_3V3_VCC"
+    dmm_out.vcc.override_net_name = "DMM_OUT_VCC"
+    dmm_out.gnd.override_net_name = "DMM_OUT_GND"
+
     cell1._power_5v.vcc.override_net_name = "CELL1_5V_VCC"
     cell1._power_3v3.vcc.override_net_name = "CELL1_3V3_VCC"
     cell1._power_3v3.gnd.override_net_name = "CELL1_GND" # only cell 1 has a ground
