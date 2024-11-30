@@ -242,6 +242,7 @@ module W5500Ethernet:
     osc_resistor.value = 1Mohm +/- 10%
     oscillator.xin.io ~ osc_resistor.p1
     oscillator.xout.io ~ osc_resistor.p2
+    oscillator.gnd ~ power.gnd
 
     # Connect oscillator to W5500
     w5500.XI_slash_CLKIN ~ oscillator.xin.io
