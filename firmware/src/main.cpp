@@ -7,11 +7,12 @@
 #include <Adafruit_ADS1X15.h> // ADC
 #include <FastLED.h>          // Addressable LEDs
 
-
 // Micro pinout
 #define ledPin 0
-#define sdaPin 7
-#define sclPin 6
+#define wire_1_sdaPin 7
+#define wire_1_sclPin 6
+#define wire_2_sdaPin 17
+#define wire_2_sclPin 18
 
 // Addressable LEDs
 #define NUM_LEDS 6
@@ -60,8 +61,10 @@ void updateStatusLEDs(float v1, float v2, float v3, float i1, float i2, float i3
 void setup()
 {
     USBSerial.begin(115200);
-    Wire.setPins(sdaPin, sclPin);
+    Wire.setPins(wire_2_sdaPin, wire_2_sclPin);
     Wire.begin();
+    Wire1.setPins(wire_1_sdaPin, wire_1_sclPin);
+    Wire1.begin();
 
     cell1.init();
     cell2.init();
