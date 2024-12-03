@@ -8,6 +8,7 @@ void Cell::init()
 {
     // Set the mux channel
     setMuxChannel();
+
     // Initialize DACs
     ldo_dac.begin(LDO_ADDRESS);
     buck_dac.begin(BUCK_ADDRESS);
@@ -30,21 +31,21 @@ void Cell::init()
 
 void Cell::disable()
 {
-    GPIO_STATE &= ~(1 << 2);
-    GPIO_STATE &= ~(1 << 3);
+    GPIO_STATE &= ~(1 << gpio_buck_enable);
+    GPIO_STATE &= ~(1 << gpio_ldo_enable);
     setGPIOState();
 }
 
 void Cell::enable()
 {
-    GPIO_STATE |= (1 << 2);
-    GPIO_STATE |= (1 << 3);
+    GPIO_STATE |= (1 << gpio_buck_enable);
+    GPIO_STATE |= (1 << gpio_ldo_enable);
     setGPIOState();
 }
 
 float Cell::getVoltage()
 {
-    int16_t adc_value = adc.readADC_SingleEnded(2);
+    int16_t adc_value = adc.readADC_SingleEnded(adc_output_voltage);
     float volts = adc.computeVolts(adc_value);
     return volts;
 }
@@ -68,27 +69,27 @@ void Cell::setVoltage(float voltage)
     setLDOVoltage(ldo_voltage);
 }
 
-void Cell::turnOnDMMRelay()
-{
-    GPIO_STATE |= (1 << 6);
-    setGPIOState();
-}
-
-void Cell::turnOffDMMRelay()
-{
-    GPIO_STATE &= ~(1 << 6);
-    setGPIOState();
-}
-
 void Cell::turnOnOutputRelay()
 {
-    GPIO_STATE |= (1 << 7);
+    GPIO_STATE |= (1 << gpio_output_relay_control);
     setGPIOState();
 }
 
 void Cell::turnOffOutputRelay()
 {
-    GPIO_STATE &= ~(1 << 7);
+    GPIO_STATE &= ~(1 << gpio_output_relay_control);
+    setGPIOState();
+}
+
+void Cell::turnOnLoadSwitch()
+{
+    GPIO_STATE |= (1 << gpio_load_switch_control);
+    setGPIOState();
+}
+
+void Cell::turnOffLoadSwitch()
+{
+    GPIO_STATE &= ~(1 << gpio_load_switch_control);
     setGPIOState();
 }
 
@@ -102,7 +103,7 @@ float Cell::getCurrent()
 float Cell::getLDOVoltage()
 {
     setMuxChannel();
-    int16_t adc_value = adc.readADC_SingleEnded(1);
+    int16_t adc_value = adc.readADC_SingleEnded(adc_ldo_voltage);
     float volts = adc.computeVolts(adc_value);
     return volts;
 }
@@ -126,7 +127,7 @@ uint16_t Cell::calculateSetpoint(float voltage, bool useBuckCalibration)
 float Cell::getBuckVoltage()
 {
     setMuxChannel();
-    int16_t adc_value = adc.readADC_SingleEnded(0);
+    int16_t adc_value = adc.readADC_SingleEnded(adc_buck_voltage);
     float volts = adc.computeVolts(adc_value);
     return volts;
 }
@@ -161,7 +162,7 @@ void Cell::setGPIOState()
 float Cell::readShuntCurrent()
 {
     setMuxChannel();
-    int16_t adc_value = adc.readADC_SingleEnded(3);
+    int16_t adc_value = adc.readADC_SingleEnded(adc_output_current);
     float volts = adc.computeVolts(adc_value);
 
     return volts / SHUNT_RESISTOR_OHMS / SHUNT_GAIN;
