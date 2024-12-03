@@ -1,7 +1,10 @@
 #include "Cell.h"
 
 // Constructor
-Cell::Cell(uint8_t mux_channel) : mux_channel(mux_channel) {}
+Cell::Cell(uint8_t mux_channel, TwoWire& wire_interface) :
+    mux_channel(mux_channel), wire(wire_interface) {
+    // ...
+}
 
 // Implementation of public methods
 void Cell::init()
@@ -10,23 +13,23 @@ void Cell::init()
     setMuxChannel();
 
     // Initialize DACs
-    ldo_dac.begin(LDO_ADDRESS);
-    buck_dac.begin(BUCK_ADDRESS);
+    ldo_dac.begin(LDO_ADDRESS, &wire);
+    buck_dac.begin(BUCK_ADDRESS, &wire);
 
     // Initialize ADC
-    adc.begin(ADC_ADDRESS);
+    adc.begin(ADC_ADDRESS, &wire);
 
     // Configure GPIO expander
-    Wire.beginTransmission(0x20);
-    Wire.write(0x03); // Configuration register
-    Wire.write(0x00); // Set all pins as output
-    Wire.endTransmission();
+    wire.beginTransmission(0x20);
+    wire.write(0x03); // Configuration register
+    wire.write(0x00); // Set all pins as output
+    wire.endTransmission();
 
     // Set the outputs to 0
-    Wire.beginTransmission(0x20);
-    Wire.write(0x01); // Configuration register
-    Wire.write(0x00); // Set all pins as output
-    Wire.endTransmission();
+    wire.beginTransmission(0x20);
+    wire.write(0x01); // Configuration register
+    wire.write(0x00); // Set all pins as output
+    wire.endTransmission();
 }
 
 void Cell::disable()
@@ -153,10 +156,10 @@ void Cell::setGPIOState()
 {
     setMuxChannel();
     // Set output relay on P7
-    Wire.beginTransmission(TCA6408_ADDR);
-    Wire.write(0x01); // Output register
-    Wire.write(GPIO_STATE);
-    Wire.endTransmission();
+    wire.beginTransmission(TCA6408_ADDR);
+    wire.write(0x01); // Output register
+    wire.write(GPIO_STATE);
+    wire.endTransmission();
 }
 
 float Cell::readShuntCurrent()
@@ -170,7 +173,7 @@ float Cell::readShuntCurrent()
 
 void Cell::setMuxChannel()
 {
-    Wire.beginTransmission(MUX_ADDRESS);
-    Wire.write(1 << mux_channel);
-    Wire.endTransmission();
+    wire.beginTransmission(MUX_ADDRESS);
+    wire.write(1 << mux_channel);
+    wire.endTransmission();
 }
