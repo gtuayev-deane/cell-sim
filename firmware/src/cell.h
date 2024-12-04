@@ -20,10 +20,10 @@ public:
     float getVoltage();
     float getCurrent();
     void setVoltage(float voltage);
-    void turnOnDMMRelay();
-    void turnOffDMMRelay();
     void turnOnOutputRelay();
     void turnOffOutputRelay();
+    void turnOnLoadSwitch();
+    void turnOffLoadSwitch();
     float getLDOVoltage();
     void setLDOVoltage(float voltage);
     float getBuckVoltage();
@@ -31,6 +31,19 @@ public:
     uint8_t GPIO_STATE = 0b00000000;
 
 private:
+    // Pins
+    // ADC
+    const int adc_buck_voltage = 0;
+    const int adc_ldo_voltage = 1;
+    const int adc_output_current = 2;
+    const int adc_output_voltage = 3;
+
+    // GPIO Expander
+    const int gpio_buck_enable = 2;
+    const int gpio_ldo_enable = 3;
+    const int gpio_load_switch_control = 4;
+    const int gpio_output_relay_control = 5;
+
     // Hardcoded I2C addresses
     const uint8_t LDO_ADDRESS = 0x60;
     const uint8_t BUCK_ADDRESS = 0x61;
@@ -41,8 +54,6 @@ private:
 
     // Mux channel
     const uint8_t mux_channel;
-
-    // GPIO state
 
     // Device instances
     Adafruit_MCP4725 ldo_dac;
