@@ -29,21 +29,29 @@ const int DMM_MUX_PINS[] = {1, 2, 3, 4};
 const int DMM_MUX_ENABLE = 5;
 
 // Addressable LEDs
-#define NUM_LEDS 16
+#define NUM_LEDS 32
 CRGB leds[NUM_LEDS];
 
 // Create cells
-Cell cell1(0);
-Cell cell2(1);
-Cell cell3(2);
-Cell cell4(3);
-Cell cell5(4);
-Cell cell6(5);
-Cell cell7(6);
-Cell cell8(7);
+Cell cell1(0, Wire);
+Cell cell2(1, Wire);
+Cell cell3(2, Wire);
+Cell cell4(3, Wire);
+Cell cell5(4, Wire);
+Cell cell6(5, Wire);
+Cell cell7(6, Wire);
+Cell cell8(7, Wire);
+Cell cell9(0, Wire1);
+Cell cell10(1, Wire1);
+Cell cell11(2, Wire1);
+Cell cell12(3, Wire1);
+Cell cell13(4, Wire1);
+Cell cell14(5, Wire1);
+Cell cell15(6, Wire1);
+Cell cell16(7, Wire1);
 
 // Cell array
-Cell cells[] = {cell1, cell2, cell3, cell4, cell5, cell6, cell7, cell8};
+Cell cells[] = {cell1, cell2, cell3, cell4, cell5, cell6, cell7, cell8, cell9, cell10, cell11, cell12, cell13, cell14, cell15, cell16};
 
 
 void setupLEDs()
@@ -87,6 +95,13 @@ void setup()
     // SPI.setBitOrder(MSBFIRST);
     // SPI.setDataMode(SPI_MODE0);
 
+    // Setup mux
+    pinMode(DMM_MUX_ENABLE, OUTPUT);
+    for (int i = 0; i < 4; i++) {
+        pinMode(DMM_MUX_PINS[i], OUTPUT);
+        digitalWrite(DMM_MUX_PINS[i], LOW);
+    }
+
     delay(1000);
 
     // Initialize cells
@@ -101,13 +116,15 @@ void setup()
     FastLED.setBrightness(255);
 }
 
-float voltage = 2;
-float sum = 0.01;
+float voltage = 3.5;
 void loop()
 {
     for (Cell& cell : cells) {
         cell.setVoltage(voltage);
+        USBSerial.println(cell.getVoltage());
     }
 
-    updateStatusLEDs(cells, 8);
+    updateStatusLEDs(cells, sizeof(cells) / sizeof(cells[0]));
+
+    delay(1000);
 }

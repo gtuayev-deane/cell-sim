@@ -11,7 +11,7 @@ class Cell
 {
 public:
     // Constructor
-    Cell(uint8_t mux_channel);
+    Cell(uint8_t mux_channel, TwoWire& wire_interface);
 
     // Public methods
     void init();
@@ -54,6 +54,7 @@ private:
 
     // Mux channel
     const uint8_t mux_channel;
+    TwoWire& wire;
 
     // Device instances
     Adafruit_MCP4725 ldo_dac;
