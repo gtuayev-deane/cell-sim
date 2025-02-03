@@ -2,7 +2,7 @@
 #include <Wire.h>
 #include <SPI.h>
 #include <Cell.h>
-// #include <Adafruit_SSD1306.h> // OLED
+// #include <Adafruit_SSD1306.h> // OLEDå
 #include <Adafruit_MCP4725.h> // DAC
 #include <Adafruit_ADS1X15.h> // ADC
 #include <FastLED.h>          // Addressable LEDs
@@ -53,6 +53,7 @@ Cell cell16(7, Wire1);
 // Cell array
 Cell cells[] = {cell1, cell2, cell3, cell4, cell5, cell6, cell7, cell8, cell9, cell10, cell11, cell12, cell13, cell14, cell15, cell16};
 
+float voltageTargets[16];
 
 void setupLEDs()
 {
@@ -60,7 +61,8 @@ void setupLEDs()
 }
 
 void updateStatusLEDs(Cell* cells, size_t num_cells) {
-    // Constants for max values
+    // Constants for voltage range
+    const float MIN_VOLTAGE = 0.5;  // Minimum voltage
     const float MAX_VOLTAGE = 4.5;  // Maximum voltage
     const float MAX_CURRENT = 0.5;  // Maximum current in amps
     
@@ -69,13 +71,25 @@ void updateStatusLEDs(Cell* cells, size_t num_cells) {
         float voltage = cells[i].getVoltage();
         float current = cells[i].getCurrent();
         
-        // Calculate brightness as fraction of maximum (0-255)
+        // Calculate voltage position in range 0-1
+        float voltage_pos = constrain((voltage - MIN_VOLTAGE) / (MAX_VOLTAGE - MIN_VOLTAGE), 0, 1);
         uint8_t current_bright = constrain((current / MAX_CURRENT) * 255, 0, 255);
-        uint8_t voltage_bright = constrain((voltage / MAX_VOLTAGE) * 255, 0, 255);
 
-        // Set LED colors - Current LED is red, Voltage LED is blue
+        // Create color gradient for voltage (blue->green->red)
+        CRGB voltage_color;
+        if (voltage_pos < 0.5) {
+            // Blue to green (0-0.5)
+            float pos = voltage_pos * 2;
+            voltage_color = CRGB(0, 255 * pos, 255 * (1 - pos));
+        } else {
+            // Green to red (0.5-1.0)
+            float pos = (voltage_pos - 0.5) * 2;
+            voltage_color = CRGB(255 * pos, 255 * (1 - pos), 0);
+        }
+
+        // Set LED colors - Current LED is red, Voltage LED is color gradient
         leds[i*2] = CRGB(current_bright, 0, 0);     // Current LED
-        leds[i*2 + 1] = CRGB(0, 0, voltage_bright); // Voltage LED
+        leds[i*2 + 1] = voltage_color;              // Voltage LED
     }
 
     FastLED.show();
@@ -102,6 +116,11 @@ void setup()
         digitalWrite(DMM_MUX_PINS[i], LOW);
     }
 
+    // Initialize voltage targets for each of the 16 cells
+    for (int i = 0; i < 16; i++) {
+        voltageTargets[i] = 3.5;
+    }
+
     delay(1000);
 
     // Initialize cells
@@ -116,15 +135,125 @@ void setup()
     FastLED.setBrightness(255);
 }
 
-float voltage = 3.5;
-void loop()
-{
-    for (Cell& cell : cells) {
-        cell.setVoltage(voltage);
-        USBSerial.println(cell.getVoltage());
+void processUARTCommands() {
+    if (USBSerial.available()) {
+        String cmd = USBSerial.readStringUntil('\n');
+        cmd.trim();
+        if (cmd.length() == 0) return;
+
+        int firstSpace = cmd.indexOf(' ');
+        String command = cmd;
+        String args = "";
+        if (firstSpace != -1) {
+            command = cmd.substring(0, firstSpace);
+            args = cmd.substring(firstSpace + 1);
+        }
+        command.toUpperCase();
+
+        if (command == "SETV") {
+            int spaceIndex = args.indexOf(' ');
+            if (spaceIndex == -1) {
+                USBSerial.println("Error:SETV requires two arguments");
+                return;
+            }
+            String cellStr = args.substring(0, spaceIndex);
+            String voltageStr = args.substring(spaceIndex + 1);
+            int cellNumber = cellStr.toInt();
+            float voltageValue = voltageStr.toFloat();
+            if (cellNumber < 1 || cellNumber > 16) {
+                USBSerial.println("Error:cell number must be between 1 and 16");
+                return;
+            }
+            voltageTargets[cellNumber - 1] = voltageValue;
+            USBSerial.print("OK:voltage_set:");
+            USBSerial.println(voltageValue);
+        } else if (command == "GETV") {
+            int cellNumber = args.toInt();
+            if (cellNumber < 1 || cellNumber > 16) {
+                USBSerial.println("Error:cell number must be between 1 and 16");
+                return;
+            }
+            float volt = cells[cellNumber - 1].getVoltage();
+            USBSerial.print("OK:voltage:");
+            USBSerial.println(volt);
+        } else if (command == "ENABLE_OUTPUT") {
+            int cellNumber = args.toInt();
+            if (cellNumber < 1 || cellNumber > 16) {
+                USBSerial.println("Error:cell number must be between 1 and 16");
+                return;
+            }
+            cells[cellNumber - 1].turnOnOutputRelay();
+            USBSerial.print("OK:output_enabled:");
+            USBSerial.println(cellNumber);
+        } else if (command == "ENABLE_DMM") {
+            int cellNumber = args.toInt();
+            if (cellNumber < 1 || cellNumber > 16) {
+                USBSerial.println("Error:cell number must be between 1 and 16");
+                return;
+            }
+            int channel = cellNumber - 1;
+            for (int i = 0; i < 4; i++) {
+                int bitVal = (channel >> i) & 0x01;
+                digitalWrite(DMM_MUX_PINS[i], bitVal ? HIGH : LOW);
+            }
+            digitalWrite(DMM_MUX_ENABLE, HIGH);
+            USBSerial.print("OK:dmm_enabled:");
+            USBSerial.println(cellNumber);
+        } else if (command == "DISABLE_DMM") {
+            digitalWrite(DMM_MUX_ENABLE, LOW);
+            USBSerial.println("OK:dmm_disabled");
+        } else if (command == "GETALLV") {
+            String response = "OK:voltages:";
+            for (int i = 0; i < 16; i++) {
+                if (i > 0) response += ",";
+                response += String(cells[i].getVoltage(), 2);
+            }
+            USBSerial.println(response);
+        } else if (command == "GETALLI") {
+            String response = "OK:currents:";
+            for (int i = 0; i < 16; i++) {
+                if (i > 0) response += ",";
+                response += String(cells[i].getCurrent(), 2);
+            }
+            USBSerial.println(response);
+        } else if (command == "SETALLV") {
+            if (args.length() == 0) {
+                USBSerial.println("Error:SETALLV requires one argument");
+                return;
+            }
+            float voltage = args.toFloat();
+            for (int i = 0; i < 16; i++) {
+                voltageTargets[i] = voltage;
+            }
+            USBSerial.print("OK:all_voltages_set:");
+            USBSerial.println(voltage);
+        } else if (command == "PING") {
+            USBSerial.println("OK:PONG");
+        } else {
+            USBSerial.println("Error:unknown command");
+        }
+    }
+}
+
+void loop() {
+    processUARTCommands();
+
+    // Update LEDs every 100ms
+    static unsigned long lastLEDUpdate = 0;
+    if (millis() - lastLEDUpdate > 100) {
+        updateStatusLEDs(cells, 16);
+        lastLEDUpdate = millis();
     }
 
-    updateStatusLEDs(cells, sizeof(cells) / sizeof(cells[0]));
+    // Update voltage targets at a reasonable rate
+    static unsigned long lastVoltageUpdate = 0;
+    if (millis() - lastVoltageUpdate > 10) {
+        for (int i = 0; i < 16; i++) {
+            cells[i].setVoltage(voltageTargets[i]);
+        }
+        lastVoltageUpdate = millis();
+    }
 
-    delay(1000);
+    // Small delay to prevent busy-waiting
+    delay(1);
 }
