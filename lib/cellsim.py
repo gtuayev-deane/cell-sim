@@ -28,11 +28,6 @@ class CellSim:
                 return None
         return None
 
-    def enableOutput(self, channel: int):
-        """Enable the output for the given cell channel (1-16)."""
-        cmd = f"ENABLE_OUTPUT {channel}"
-        return self.client.send_command(cmd)
-
     def enableDMM(self, channel: int):
         """Enable the DMM for the given cell channel (1-16)."""
         cmd = f"ENABLE_DMM {channel}"
@@ -89,6 +84,46 @@ class CellSim:
             elif stripped.startswith("Error:"):
                 break
         return currents
+    
+    def enableOutputAll(self):
+        """Enable the output for all 16 cells."""
+        cmd = "ENABLE_OUTPUT_ALL"
+        return self.client.send_command(cmd)
+
+    def disableOutputAll(self):
+        """Disable the output for all 16 cells."""
+        cmd = "DISABLE_OUTPUT_ALL"
+        return self.client.send_command(cmd)
+    
+    def enableOutput(self, channel: int):
+        """Enable the output for the given cell channel (1-16)."""
+        cmd = f"ENABLE_OUTPUT {channel}"
+        return self.client.send_command(cmd)
+
+    def disableOutput(self, channel: int):
+        """Disable the output for the given cell channel (1-16)."""
+        cmd = f"DISABLE_OUTPUT {channel}"
+        return self.client.send_command(cmd)
+    
+    def enableLoadSwitchAll(self):
+        """Enable the load switch for all 16 cells."""
+        cmd = "ENABLE_LOAD_SWITCH_ALL"
+        return self.client.send_command(cmd)
+
+    def disableLoadSwitchAll(self):
+        """Disable the load switch for all 16 cells."""
+        cmd = "DISABLE_LOAD_SWITCH_ALL"
+        return self.client.send_command(cmd)
+
+    def enableLoadSwitch(self, channel: int):
+        """Enable the load switch for the given cell channel (1-16)."""
+        cmd = f"ENABLE_LOAD_SWITCH {channel}"
+        return self.client.send_command(cmd)
+    
+    def disableLoadSwitch(self, channel: int):
+        """Disable the load switch for the given cell channel (1-16)."""
+        cmd = f"DISABLE_LOAD_SWITCH {channel}"
+        return self.client.send_command(cmd)
 
     def close(self):
         """Close the underlying serial connection."""

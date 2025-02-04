@@ -196,11 +196,11 @@ void processUARTCommands() {
                 int bitVal = (channel >> i) & 0x01;
                 digitalWrite(DMM_MUX_PINS[i], bitVal ? HIGH : LOW);
             }
-            digitalWrite(DMM_MUX_ENABLE, HIGH);
+            digitalWrite(DMM_MUX_ENABLE, LOW);
             USBSerial.print("OK:dmm_enabled:");
             USBSerial.println(cellNumber);
         } else if (command == "DISABLE_DMM") {
-            digitalWrite(DMM_MUX_ENABLE, LOW);
+            digitalWrite(DMM_MUX_ENABLE, HIGH);
             USBSerial.println("OK:dmm_disabled");
         } else if (command == "GETALLV") {
             String response = "OK:voltages:";
@@ -227,6 +227,58 @@ void processUARTCommands() {
             }
             USBSerial.print("OK:all_voltages_set:");
             USBSerial.println(voltage);
+        } else if (command == "ENABLE_OUTPUT_ALL") {
+            for (int i = 0; i < 16; i++) {
+                cells[i].turnOnOutputRelay();
+            }
+            USBSerial.println("OK:all_outputs_enabled");
+        } else if (command == "DISABLE_OUTPUT_ALL") {
+            for (int i = 0; i < 16; i++) {
+                cells[i].turnOffOutputRelay();
+            }
+            USBSerial.println("OK:all_outputs_disabled");
+        } else if (command == "ENABLE_OUTPUT") {
+            int cellNumber = args.toInt();
+            if (cellNumber < 1 || cellNumber > 16) {
+                USBSerial.println("Error:cell number must be between 1 and 16");
+                return;
+            }
+            cells[cellNumber - 1].turnOnOutputRelay();
+            USBSerial.println("OK:output_enabled");
+        } else if (command == "DISABLE_OUTPUT") {
+            int cellNumber = args.toInt();
+            if (cellNumber < 1 || cellNumber > 16) {
+                USBSerial.println("Error:cell number must be between 1 and 16");
+                return;
+            }
+            cells[cellNumber - 1].turnOffOutputRelay();
+            USBSerial.println("OK:output_disabled");
+        } else if (command == "ENABLE_LOAD_SWITCH") {
+            int cellNumber = args.toInt();
+            if (cellNumber < 1 || cellNumber > 16) {
+                USBSerial.println("Error:cell number must be between 1 and 16");
+                return;
+            }
+            cells[cellNumber - 1].turnOnLoadSwitch();
+            USBSerial.println("OK:load_switch_enabled");
+        } else if (command == "DISABLE_LOAD_SWITCH") {
+            int cellNumber = args.toInt();
+            if (cellNumber < 1 || cellNumber > 16) {
+                USBSerial.println("Error:cell number must be between 1 and 16");
+                return;
+            }
+            cells[cellNumber - 1].turnOffLoadSwitch();
+            USBSerial.println("OK:load_switch_disabled");
+        } else if (command == "ENABLE_LOAD_SWITCH_ALL") {
+            for (int i = 0; i < 16; i++) {
+                cells[i].turnOnLoadSwitch();
+            }
+            USBSerial.println("OK:all_load_switches_enabled");
+        } else if (command == "DISABLE_LOAD_SWITCH_ALL") {
+            for (int i = 0; i < 16; i++) {
+                cells[i].turnOffLoadSwitch();
+            }
+            USBSerial.println("OK:all_load_switches_disabled");
         } else if (command == "PING") {
             USBSerial.println("OK:PONG");
         } else {

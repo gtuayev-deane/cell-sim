@@ -27,6 +27,32 @@ def main():
     currents = cellsim.getAllCurrents()
     print(f"Currents: {currents}")
 
+    cellsim.enableOutputAll()
+    time.sleep(1)
+
+    cellsim.disableOutputAll()
+    time.sleep(1)
+
+    # Turn relays on in a wave
+    for i in range(1, 17):
+        cellsim.enableOutput(i)
+        time.sleep(0.1)
+
+    time.sleep(1)
+
+    # Turn relays off in a wave
+    for i in range(1, 17):
+        cellsim.disableOutput(i)
+        time.sleep(0.1)
+
+    cellsim.enableLoadSwitchAll()
+    time.sleep(1)
+
+    cellsim.disableLoadSwitchAll()
+    time.sleep(1)
+
+    cellsim.disableDMM()
+
     cellsim.close()
 
 if __name__ == '__main__':

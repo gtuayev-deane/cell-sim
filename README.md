@@ -43,5 +43,3 @@ We use PlatformIO to build and upload the firmware via USB.
 2. Connect the board via USB (might need to accept connection popup on Mac)
 3. Run `pio run -t upload` or install the PlatformIO VSCode extension and use the upload button.
 
-
-
