@@ -23,12 +23,10 @@ This cell-sim is designed to mimic a LiPo battery pack for develpoment of the su
 1. install python if you don't have it already
 2. install the requirements `pip install -r requirements.txt`
 3. connect the board via USB
-4. Find the port, something like `/dev/cu.usbmodem1101` on Mac or `COM3` on Windows (look in your device manager)
-5. Update the port in example_set_voltages.py
 ![Port](docs/port.png)
-6. Power the board with the 12V input (supply: 1A minimum, 3A recommended)
-7. run the example python script `python example_set_voltages.py`
-8. Voltages should be set to 3.5V, then rainbow from 1V to 4V across the 16 channels and current should be close to 0A.
+4. Power the board with the 12V input (supply: 1A minimum, 3A recommended)
+5. run the example python script `python example_set_voltages.py`
+6. Voltages should be set to 3.5V, then rainbow from 1V to 4V across the 16 channels and current should be close to 0A.
 
 ![Test Output](docs/test-output.png)
 
