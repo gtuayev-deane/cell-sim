@@ -34,6 +34,7 @@ void Cell::init()
 
 void Cell::disable()
 {
+    setMuxChannel();
     GPIO_STATE &= ~(1 << gpio_buck_enable);
     GPIO_STATE &= ~(1 << gpio_ldo_enable);
     setGPIOState();
@@ -41,6 +42,7 @@ void Cell::disable()
 
 void Cell::enable()
 {
+    setMuxChannel();
     GPIO_STATE |= (1 << gpio_buck_enable);
     GPIO_STATE |= (1 << gpio_ldo_enable);
     setGPIOState();
@@ -48,6 +50,7 @@ void Cell::enable()
 
 float Cell::getVoltage()
 {
+    setMuxChannel();
     int16_t adc_value = adc.readADC_SingleEnded(adc_output_voltage);
     float volts = adc.computeVolts(adc_value);
     return volts;
@@ -74,30 +77,35 @@ void Cell::setVoltage(float voltage)
 
 void Cell::turnOnOutputRelay()
 {
+    setMuxChannel();
     GPIO_STATE |= (1 << gpio_output_relay_control);
     setGPIOState();
 }
 
 void Cell::turnOffOutputRelay()
 {
+    setMuxChannel();
     GPIO_STATE &= ~(1 << gpio_output_relay_control);
     setGPIOState();
 }
 
 void Cell::turnOnLoadSwitch()
 {
+    setMuxChannel();
     GPIO_STATE |= (1 << gpio_load_switch_control);
     setGPIOState();
 }
 
 void Cell::turnOffLoadSwitch()
 {
+    setMuxChannel();
     GPIO_STATE &= ~(1 << gpio_load_switch_control);
     setGPIOState();
 }
 
 float Cell::getCurrent()
 {
+    setMuxChannel();
     return readShuntCurrent();
 }
 

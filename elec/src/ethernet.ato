@@ -297,7 +297,6 @@ component W5500:
     AGND ~ pin 9
     signal EXRES1 ~ pin 10
     AVDD ~ pin 11
-    signal NC ~ pin 12
     AGND ~ pin 14
     AVDD ~ pin 15
     AGND ~ pin 16
