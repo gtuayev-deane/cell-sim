@@ -4,11 +4,11 @@ This cell-sim is designed to mimic a LiPo battery pack for develpoment of the su
 
 - 16 channels
 - Open-Source hardware design, you can embed onto your own HIL setup
-- ⚡️ 0-5V and 0-500mA per channel
+- ⚡️ 0-4.5V and 0-500mA per channel
 - DMM muxed to each channel for arbitarily precise measurment
 - Open-circuit simulation on each channel
 - 📏 16bit ADC feedback for voltage and current
-- 🔌 USB + 100MBit Ethernet + WiFi w/ Python software interface
+- 🔌 USB w/ Python software interface (+ 100MBit Ethernet + WiFi waiting for firmware support)
 
 ![IMG_0374 3](https://github.com/user-attachments/assets/d8fa4661-c460-48e2-a26a-71079aa79707)
 
@@ -32,6 +32,9 @@ This cell-sim is designed to mimic a LiPo battery pack for develpoment of the su
 
 You should see something like this:
 ![Rainbow](docs/labeled-interfaces.png)
+
+## Notes
+1. To get best low noise performance, use a quality power supply for the input supply.
 
 ## Firmware
 
