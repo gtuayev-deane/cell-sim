@@ -128,7 +128,7 @@ void setup()
         cell.init();
         cell.enable();
         cell.turnOnOutputRelay();
-        delay(10);
+        cell.calibrate();
     }
 
     FastLED.addLeds<NEOPIXEL, ledPin>(leds, NUM_LEDS);
@@ -175,7 +175,7 @@ void processUARTCommands() {
             }
             float volt = cells[cellNumber - 1].getVoltage();
             USBSerial.print("OK:voltage:");
-            USBSerial.println(volt);
+            USBSerial.println(volt, 5);
         } else if (command == "ENABLE_OUTPUT") {
             int cellNumber = args.toInt();
             if (cellNumber < 1 || cellNumber > 16) {
@@ -281,6 +281,20 @@ void processUARTCommands() {
             USBSerial.println("OK:all_load_switches_disabled");
         } else if (command == "PING") {
             USBSerial.println("OK:PONG");
+        } else if (command == "CALIBRATE") {
+            int cell_num = args.toInt();
+            if (cell_num < 1 || cell_num > 16) {
+                USBSerial.println("Error:cell number must be between 1 and 16");
+                return;
+            }
+            cells[cell_num - 1].calibrate();
+
+            USBSerial.println("OK:calibrated");
+        } else if (command == "CALIBRATE_ALL") {
+            for (int i = 0; i < 16; i++) {
+                cells[i].calibrate();
+            }
+            USBSerial.println("OK:all_calibrated");
         } else {
             USBSerial.println("Error:unknown command");
         }

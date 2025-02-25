@@ -119,22 +119,6 @@ float Cell::getLDOVoltage()
     return volts;
 }
 
-uint16_t Cell::calculateSetpoint(float voltage, bool useBuckCalibration)
-{
-    // Select calibration points based on parameter
-    const std::pair<float, float>* calibration_points = useBuckCalibration ? BUCK_SETPOINTS : LDO_SETPOINTS;
-
-    // Calculate slope using the two points
-    float m = (calibration_points[1].first - calibration_points[0].first) / 
-              (calibration_points[1].second - calibration_points[0].second);
-
-    // Calculate intercept
-    float b = calibration_points[0].first - m * calibration_points[0].second;
-
-    // Calculate and return the setpoint for the desired voltage
-    return static_cast<uint16_t>(m * voltage + b);
-}
-
 float Cell::getBuckVoltage()
 {
     setMuxChannel();
@@ -184,4 +168,69 @@ void Cell::setMuxChannel()
     wire.beginTransmission(MUX_ADDRESS);
     wire.write(1 << mux_channel);
     wire.endTransmission();
+}
+
+void Cell::calibrate()
+{
+    // Calibrate the buck between 234 and 2625
+    float delta = 2625 - 234;
+    int step = round(delta / NUM_POINTS);
+    for (int i = 0; i < NUM_POINTS; i++) {
+        enable();
+        turnOnOutputRelay();
+        float setpoint = 234 + i * step;
+        buck_dac.setVoltage(setpoint, false);
+        delay(100);
+        float voltage = getBuckVoltage();
+        BUCK_SETPOINTS[i] = {voltage, setpoint};
+    }
+
+    // Set buck output to max
+    buck_dac.setVoltage(234, false);
+    delay(50);
+    // Calibrate the ldo between 42 and 3760    
+    delta = 3760 - 42;
+    step = round(delta / NUM_POINTS);
+    for (int i = 0; i < NUM_POINTS; i++) {
+        enable();
+        turnOnOutputRelay();
+        float setpoint = 42 + i * step;
+        ldo_dac.setVoltage(setpoint, false);
+        delay(100);
+        float voltage = getVoltage();
+        LDO_SETPOINTS[i] = {voltage, setpoint};
+    }
+}
+
+uint16_t Cell::calculateSetpoint(float voltage, bool useBuckCalibration)
+{
+    // Use the appropriate calibration array; each element is {measured voltage, DAC setpoint}
+    const std::pair<float, float>* calibration_points = useBuckCalibration ? BUCK_SETPOINTS : LDO_SETPOINTS;
+    const int numPoints = NUM_POINTS;
+    // For descending data: clamp if voltage is above the maximum or below the minimum.
+    if (voltage >= calibration_points[0].first) {
+        return calibration_points[0].second;
+    }
+    if (voltage <= calibration_points[numPoints - 1].first) {
+        return calibration_points[numPoints - 1].second;
+    }
+    // Find the first index where the measured voltage becomes less than or equal to the target.
+    int index = 1;
+    while (index < numPoints && calibration_points[index].first > voltage) {
+        index++;
+    }
+    int above_index = index - 1;
+    int below_index = index;
+    if (above_index == below_index) {
+        return calibration_points[above_index].second;
+    }
+    // Linear interpolation:
+    // DAC setpoint = s1 + (voltage - v1) * (s2 - s1) / (v2 - v1)
+    float v1 = calibration_points[above_index].first;
+    float v2 = calibration_points[below_index].first;
+    float s1 = calibration_points[above_index].second;
+    float s2 = calibration_points[below_index].second;
+    float m = (s2 - s1) / (v2 - v1);
+    float b = s1 - m * v1;
+    return static_cast<uint16_t>(m * voltage + b);
 }
