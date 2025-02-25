@@ -28,6 +28,7 @@ public:
     void setLDOVoltage(float voltage);
     float getBuckVoltage();
     void setBuckVoltage(float voltage);
+    void calibrate();
     uint8_t GPIO_STATE = 0b00000000;
 
 private:
@@ -80,8 +81,14 @@ private:
     const float MAX_LDO_VOLTAGE = 4.5;
 
     // Calibration points
-    const std::pair<float, float> BUCK_SETPOINTS[2] = {{234, 4.5971}, {2625, 1.5041}};
-    const std::pair<float, float> LDO_SETPOINTS[2] = {{42, 4.5176}, {3760, 0.3334}};
+    static const int NUM_POINTS = 32;
+    // Each pair is defined as {measured voltage, DAC setpoint}
+    std::pair<float, float> BUCK_SETPOINTS[NUM_POINTS] = {
+        {4.5971, 234}, {1.5041, 2625}
+    };
+    std::pair<float, float> LDO_SETPOINTS[NUM_POINTS] = {
+        {4.5176, 42}, {0.3334, 3760}
+    };
 };
 
 #endif // CELL_H

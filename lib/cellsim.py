@@ -21,7 +21,7 @@ class CellSim:
             stripped = line.strip()
             if stripped.startswith("OK:voltage:"):
                 try:
-                    return float(stripped[len("OK:voltage:"):])
+                    return round(float(stripped[len("OK:voltage:"):]), 6)
                 except Exception:
                     pass
             elif stripped.startswith("Error:"):
@@ -128,3 +128,19 @@ class CellSim:
     def close(self):
         """Close the underlying serial connection."""
         self.client.close() 
+
+    def calibrate(self, channel: int):
+        """Calibrate the given cell channel (1-16)."""
+        cmd = f"CALIBRATE {channel}"
+        response = self.client.send_command(cmd)
+        if response and "OK:calibrated" in response[0]:
+            return response
+        raise Exception("Calibration failed")
+
+    def calibrateAll(self):
+        """Calibrate all 16 cells."""
+        cmd = "CALIBRATE_ALL"
+        response = self.client.send_command(cmd)
+        if response and "OK:all_calibrated" in response[0]:
+            return response
+        raise Exception("Calibration failed")
