@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "fusa"
+version = "0.1.0"
+description = "atopile cell-sim fusa test code"
+authors = ["gtuayev-deane <gtuayev-deane@lunarenergy.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pyserial = "^3.5"
+thread6 = "^0.2.0"
+ipython = "8.32.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
